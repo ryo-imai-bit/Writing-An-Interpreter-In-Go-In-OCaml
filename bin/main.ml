@@ -1,1 +1,1 @@
-let () = print_endline Interpreter.Lexer.a
+(* let () = print_endline Interpreter.Lexer.a *)
