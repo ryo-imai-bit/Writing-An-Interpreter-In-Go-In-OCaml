@@ -44,7 +44,6 @@ module Token = struct
     t_type: token_type;
   }
 
-
   let eq tok_a tok_b = tok_a = tok_b
 
   let pp ppf _ = Fmt.pf ppf "Token =%s" "token"

@@ -20,6 +20,12 @@ module Lexer = struct
     else
       {lex with position = lex.readPosition; readPosition = lex.readPosition + 1; ch = String.get lex.input lex.readPosition}
 
+  let peekChar lex =
+    if lex.readPosition >= String.length(lex.input)
+      then null_byte
+    else
+      String.get lex.input lex.readPosition
+
 
   let rec skipWhitespace lex = match lex.ch with
     | ' '
@@ -36,10 +42,14 @@ module Lexer = struct
     | '\t'
     | '\r'
     | '\b' -> failwith "skipwhitespace wrong"
-    | '=' -> (readChar le, Token.ASSIGN)
+    | '=' -> if peekChar le = '='
+      then (readChar le |> readChar, Token.EQ)
+      else (readChar le, Token.ASSIGN)
     | '+' -> (readChar le, Token.PLUS)
     | '-' -> (readChar le, Token.MINUS)
-    | '!' -> (readChar le, Token.BANG)
+    | '!' -> if peekChar le = '='
+      then (readChar le |> readChar, Token.NOT_EQ)
+      else (readChar le, Token.BANG)
     | '*' -> (readChar le, Token.ASTERISK)
     | '/' -> (readChar le, Token.SLASH)
     | ',' -> (readChar le, Token.COMMA)
@@ -51,6 +61,7 @@ module Lexer = struct
     | '}' -> (readChar le, Token.RBRACE)
     | '[' -> (readChar le, Token.LBRACKET)
     | ']' -> (readChar le, Token.RBRACKET)
+    (* | '"' -> (readChar le, Token.STRING) *)
     | '\x00' -> (readChar le, Token.EOF)
     | _ -> (le, Token.IDENT)
 

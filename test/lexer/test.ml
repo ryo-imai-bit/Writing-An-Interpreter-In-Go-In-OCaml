@@ -4,9 +4,9 @@ include Token
 
 module To_test = struct
   let lex str = let rec gTokens lx ls =
-      if lx.ch = Lexer.null_byte
-        then (lx, ls)
-      else let (lex, tok) = Lexer.nextToken lx in gTokens lex (ls @ [tok])
+      let (lex, tok) = Lexer.nextToken lx in match tok with
+      | Token.EOF -> (lex, ls @ [tok])
+      | _ -> gTokens lex (ls @ [tok])
     in let (_, tlist) = gTokens (Lexer.newLexer str) [] in tlist
 end
 
@@ -31,9 +31,13 @@ let test_same_tok () = Alcotest.(check (list token_testable))
   ; Token.LBRACKET
   ; Token.RBRACKET
   ; Token.BANG
+  ; Token.EQ
+  ; Token.ASSIGN
+  ; Token.BANG
+  ; Token.NOT_EQ
   ; Token.EOF
   ]
-  (To_test.lex "  = + - /*!,;:(){}[] !  ")
+  (To_test.lex "= + - /*!,;:(){}[] ! == =! !=")
 
 
 
