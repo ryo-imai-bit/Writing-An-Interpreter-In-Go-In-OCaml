@@ -3,21 +3,29 @@ include Lexer
 include Token
 
 module To_test = struct
-  let lex = Lexer.nextToken
+  let lex a = let (_, lex) = Lexer.newLexer a |> Lexer.nextToken in lex
 end
 
-let token_testable = Alcotest.testable Token.prettyPrint Token.tokensEq
+let token_testable = Alcotest.testable Token.pp Token.eq
 
-let test_tok = Alcotest.(check (token_testable)) 
-  "same token" 
-  Token.ASSIGN 
-  To_test.lex {input: "=", position = 0, readPosition: 0, ch = Token.null_byte} []
+let test_same_tok () = Alcotest.(check token_testable)
+  "same token"
+  Token.ASSIGN
+  (To_test.lex "  =")
+
+let test_same_tok_ident () = Alcotest.(check token_testable)
+  "same token"
+  Token.IDENT
+  (To_test.lex "  +")
+
 
 (* Run it *)
 let () =
   let open Alcotest in
-  run "Utils" [
-      "digit", [
-          test_case "Lower case"     `Quick test_is_digit;
+  run "Lexer" [
+      "nextToken", [
+          Alcotest.test_case "assign" `Quick test_same_tok;
+          test_case "ident"     `Quick test_same_tok_ident;
         ];
+          (* {test_case "ident"     `Quick test_same_tok_ident;] *)
     ]

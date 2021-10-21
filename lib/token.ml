@@ -45,9 +45,8 @@ module Token = struct
   }
 
 
-  let tokensEq tok_a tok_b = match (tok_a, tok_b) with
-  | tok_a, tok_b -> tok_a = tok_b
+  let eq tok_a tok_b = tok_a = tok_b
 
-  let prettyPrint ppf _ = Fmt.pr ppf "Token =" 
+  let pp ppf _ = Fmt.pf ppf "Token =%s" "token"
   (* (token_to_string tok) *)
 end
