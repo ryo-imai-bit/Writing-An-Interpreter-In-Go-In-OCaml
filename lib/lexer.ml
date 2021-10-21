@@ -37,6 +37,20 @@ module Lexer = struct
     | '\r'
     | '\b' -> failwith "skipwhitespace wrong"
     | '=' -> (readChar le, Token.ASSIGN)
+    | '+' -> (readChar le, Token.PLUS)
+    | '-' -> (readChar le, Token.MINUS)
+    | '!' -> (readChar le, Token.BANG)
+    | '*' -> (readChar le, Token.ASTERISK)
+    | '/' -> (readChar le, Token.SLASH)
+    | ',' -> (readChar le, Token.COMMA)
+    | ':' -> (readChar le, Token.COLLON)
+    | ';' -> (readChar le, Token.SEMICOLON)
+    | '(' -> (readChar le, Token.LAPREN)
+    | ')' -> (readChar le, Token.RPAREN)
+    | '{' -> (readChar le, Token.LBRACE)
+    | '}' -> (readChar le, Token.RBRACE)
+    | '[' -> (readChar le, Token.LBRACKET)
+    | ']' -> (readChar le, Token.RBRACKET)
     | _ -> (le, Token.IDENT)
 
   let newLexer input = let lex = {

@@ -26,7 +26,7 @@ module Token = struct
   | LAPREN
   | RPAREN
   | LBRACE
-  | RPRACE
+  | RBRACE
   | LBRACKET
   | RBRACKET
   (* keywords *)
