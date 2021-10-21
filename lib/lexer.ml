@@ -51,6 +51,7 @@ module Lexer = struct
     | '}' -> (readChar le, Token.RBRACE)
     | '[' -> (readChar le, Token.LBRACKET)
     | ']' -> (readChar le, Token.RBRACKET)
+    | '\x00' -> (readChar le, Token.EOF)
     | _ -> (le, Token.IDENT)
 
   let newLexer input = let lex = {

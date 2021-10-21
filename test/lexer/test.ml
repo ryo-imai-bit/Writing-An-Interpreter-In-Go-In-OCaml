@@ -18,20 +18,23 @@ let test_same_tok () = Alcotest.(check (list token_testable))
     Token.ASSIGN
   ; Token.PLUS
   ; Token.MINUS
-  ; Token.ASSIGN
-  ; Token.ASSIGN
-  ; Token.ASSIGN
+  ; Token.SLASH
+  ; Token.ASTERISK
+  ; Token.BANG
+  ; Token.COMMA
+  ; Token.SEMICOLON
+  ; Token.COLLON
+  ; Token.LAPREN
+  ; Token.RPAREN
+  ; Token.LBRACE
+  ; Token.RBRACE
+  ; Token.LBRACKET
+  ; Token.RBRACKET
+  ; Token.BANG
+  ; Token.EOF
   ]
-  (To_test.lex "  = + - = ==")
+  (To_test.lex "  = + - /*!,;:(){}[] !  ")
 
-let test_same_tok_ident () = Alcotest.(check (list token_testable))
-  "same token"
-  [
-    Token.PLUS
-  ; Token.PLUS
-  ; Token.PLUS
-  ]
-  (To_test.lex "  + + +")
 
 
 (* Run it *)
@@ -39,8 +42,7 @@ let () =
   let open Alcotest in
   run "Lexer" [
       "nextToken", [
-          test_case "assign" `Slow test_same_tok;
-          test_case "ident"     `Slow test_same_tok_ident;
+          test_case "token list" `Slow test_same_tok;
         ];
           (* {test_case "ident"     `Quick test_same_tok_ident;] *)
     ]
