@@ -23,7 +23,7 @@ module Token = struct
   | COMMA
   | COLLON
   | SEMICOLON
-  | LAPREN
+  | LPAREN
   | RPAREN
   | LBRACE
   | RBRACE
@@ -44,8 +44,57 @@ module Token = struct
     t_type: token_type;
   }
 
+  let tokenToString tok = match tok.t_type with
+  | ILLEGAL -> "ILLEGAL:" ^ tok.literal
+  | EOF -> "EOF"
+  (* identifers and literals *)
+  | IDENT -> "IDENT:" ^ tok.literal
+  | INT -> "INT:" ^ tok.literal
+  | STRING -> "STRING:" ^ tok.literal
+  (* operators *)
+  | ASSIGN -> "ASSIGN"
+  | PLUS -> "PLUS"
+  | MINUS -> "MINUS"
+  | BANG -> "BANG"
+  | ASTERISK -> "ASTERISK"
+  | SLASH -> "SLASH"
+  | LT -> "LT"
+  | GT -> "GT"
+  | EQ -> "EQ"
+  | NOT_EQ -> "NOT_EQ"
+  (* delimeters *)
+  | COMMA -> "COMMA"
+  | COLLON -> "COLLON"
+  | SEMICOLON -> "SEMICOLON"
+  | LPAREN -> "LPAREN"
+  | RPAREN -> "RPAREN"
+  | LBRACE -> "LBRACE"
+  | RBRACE -> "RBRACE"
+  | LBRACKET -> "LBRACKET"
+  | RBRACKET -> "RBRACKET"
+  (* keywords *)
+  | FUNCTION -> "FUNCTION"
+  | LET -> "LET"
+  | TRUE -> "TRUE"
+  | FALSE -> "FALSE"
+  | IF -> "IF"
+  | ELSE -> "ELSE"
+  | RETURN -> "RETURN"
+
+  let keywords = function
+    | "fn" -> FUNCTION
+    | "let" -> LET
+    | "if" -> IF
+    | "else" -> ELSE
+    | "true" -> TRUE
+    | "false" -> FALSE
+    | "return" -> RETURN
+    | _ -> IDENT
+
+  let newToken t_type literal = {t_type = t_type; literal = literal}
+
   let eq tok_a tok_b = tok_a = tok_b
 
-  let pp ppf _ = Fmt.pf ppf "Token =%s" "token"
+  let pp ppf tk = Fmt.pf ppf "Token =%s" (tokenToString tk)
   (* (token_to_string tok) *)
 end

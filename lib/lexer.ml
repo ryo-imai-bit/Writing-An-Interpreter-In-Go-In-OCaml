@@ -14,11 +14,14 @@ module Lexer = struct
 
   let null_byte = '\x00'
 
-  let readChar lex =
+  let rc lex =
     if lex.readPosition >= String.length(lex.input)
-      then {lex with position = lex.readPosition; readPosition = lex.readPosition + 1; ch = null_byte}
+      then null_byte
     else
-      {lex with position = lex.readPosition; readPosition = lex.readPosition + 1; ch = String.get lex.input lex.readPosition}
+      String.get lex.input lex.readPosition
+
+  let readChar lex =
+      {lex with position = lex.readPosition; readPosition = lex.readPosition + 1; ch = rc lex}
 
   let peekChar lex =
     if lex.readPosition >= String.length(lex.input)
@@ -26,6 +29,23 @@ module Lexer = struct
     else
       String.get lex.input lex.readPosition
 
+  let read lex f = let le = f lex in (le, String.sub le.input lex.position (le.position - lex.position))
+
+  let readString lex = let rec rrc le = match le.ch with
+  | '\x00'
+  | '"' -> le
+  | _ -> readChar le |> rrc
+    in let (le, str) = read lex rrc in (readChar le, str)
+
+  let readIdent lex = let rec rrc le = match le.ch with
+  | '\x00' -> le
+  | c -> if is_letter c then (readChar le |> rrc) else le
+    in read lex rrc
+
+  let readNum lex = let rec rrc le = match le.ch with
+  | '\x00' -> le
+  | i -> if is_digit i then (readChar le |> rrc) else le
+    in read lex rrc
 
   let rec skipWhitespace lex = match lex.ch with
     | ' '
@@ -43,27 +63,31 @@ module Lexer = struct
     | '\r'
     | '\b' -> failwith "skipwhitespace wrong"
     | '=' -> if peekChar le = '='
-      then (readChar le |> readChar, Token.EQ)
-      else (readChar le, Token.ASSIGN)
-    | '+' -> (readChar le, Token.PLUS)
-    | '-' -> (readChar le, Token.MINUS)
+      then (readChar le |> readChar, Token.newToken Token.EQ (Char.escaped le.ch ^ Char.escaped (peekChar le)))
+      else (readChar le, Token.newToken Token.ASSIGN (Char.escaped le.ch))
+    | '+' -> (readChar le, Token.newToken Token.PLUS (Char.escaped le.ch))
+    | '-' -> (readChar le, Token.newToken Token.MINUS (Char.escaped le.ch))
     | '!' -> if peekChar le = '='
-      then (readChar le |> readChar, Token.NOT_EQ)
-      else (readChar le, Token.BANG)
-    | '*' -> (readChar le, Token.ASTERISK)
-    | '/' -> (readChar le, Token.SLASH)
-    | ',' -> (readChar le, Token.COMMA)
-    | ':' -> (readChar le, Token.COLLON)
-    | ';' -> (readChar le, Token.SEMICOLON)
-    | '(' -> (readChar le, Token.LAPREN)
-    | ')' -> (readChar le, Token.RPAREN)
-    | '{' -> (readChar le, Token.LBRACE)
-    | '}' -> (readChar le, Token.RBRACE)
-    | '[' -> (readChar le, Token.LBRACKET)
-    | ']' -> (readChar le, Token.RBRACKET)
-    (* | '"' -> (readChar le, Token.STRING) *)
-    | '\x00' -> (readChar le, Token.EOF)
-    | _ -> (le, Token.IDENT)
+      then (readChar le |> readChar, Token.newToken Token.NOT_EQ (Char.escaped le.ch ^ Char.escaped (peekChar le)))
+      else (readChar le, Token.newToken Token.BANG (Char.escaped le.ch))
+    | '*' -> (readChar le, Token.newToken Token.ASTERISK (Char.escaped le.ch))
+    | '/' -> (readChar le, Token.newToken Token.SLASH (Char.escaped le.ch))
+    | ',' -> (readChar le, Token.newToken Token.COMMA (Char.escaped le.ch))
+    | ':' -> (readChar le, Token.newToken Token.COLLON (Char.escaped le.ch))
+    | ';' -> (readChar le, Token.newToken Token.SEMICOLON (Char.escaped le.ch))
+    | '(' -> (readChar le, Token.newToken Token.LPAREN (Char.escaped le.ch))
+    | ')' -> (readChar le, Token.newToken Token.RPAREN (Char.escaped le.ch))
+    | '{' -> (readChar le, Token.newToken Token.LBRACE (Char.escaped le.ch))
+    | '}' -> (readChar le, Token.newToken Token.RBRACE (Char.escaped le.ch))
+    | '[' -> (readChar le, Token.newToken Token.LBRACKET (Char.escaped le.ch))
+    | ']' -> (readChar le, Token.newToken Token.RBRACKET (Char.escaped le.ch))
+    | '"' -> let (le, str) = (readChar le |> readString) in (le, Token.newToken Token.STRING str)
+    | '\x00' -> (readChar le, Token.newToken Token.EOF "")
+    | c -> if is_letter c
+      then let (le, str) = readIdent le in (le, Token.newToken (Token.keywords str) str)
+      else if is_digit c
+        then let (le, num) = readNum le in (le, Token.newToken Token.INT num)
+        else (readChar le, Token.newToken Token.ILLEGAL (Char.escaped c))
 
   let newLexer input = let lex = {
     input = input;
