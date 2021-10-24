@@ -52,9 +52,8 @@ let test_same_tok () = Alcotest.(check (list token_testable))
   ; Token.newToken Token.EOF ""
   ]
   (To_test.lex "= + - /*!,;:(){}[] ! === =!!!=
-  \"hogehoge1 ya\"aieu2222fn~#let if else
-  true false return
-  ")
+    \"hogehoge1 ya\"aieu2222fn~#let if else
+  true false return")
 
 
 
