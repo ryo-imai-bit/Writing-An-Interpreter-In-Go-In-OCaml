@@ -55,6 +55,28 @@ let test_same_tok () = Alcotest.(check (list token_testable))
     \"hogehoge1 ya\"aieu2222fn~#let if else
   true false return")
 
+let test_same_tok2 () = Alcotest.(check (list token_testable))
+  "same token"
+  [
+    Token.newToken Token.LET "let"
+  ; Token.newToken Token.IDENT "a"
+  ; Token.newToken Token.ASSIGN "="
+  ; Token.newToken Token.IDENT "b"
+  ; Token.newToken Token.FUNCTION "fn"
+  ; Token.newToken Token.IDENT "a"
+  ; Token.newToken Token.IDENT "b"
+  ; Token.newToken Token.LBRACE "{"
+  ; Token.newToken Token.IDENT "a"
+  ; Token.newToken Token.PLUS "+"
+  ; Token.newToken Token.IDENT "b"
+  ; Token.newToken Token.RBRACE "}"
+  ; Token.newToken Token.EOF ""
+  ]
+  (To_test.lex "let a = b
+  fn a b {
+    a + b
+  }")
+
 
 
 (* Run it *)
@@ -63,6 +85,6 @@ let () =
   run "Lexer" [
       "nextToken", [
           test_case "token list" `Slow test_same_tok;
+          test_case "lex syntax"     `Quick test_same_tok2;
         ];
-          (* {test_case "ident"     `Quick test_same_tok_ident;] *)
     ]
