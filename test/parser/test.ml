@@ -6,7 +6,8 @@ include Lexer
 module To_test = struct
   let newparser lex = let le = Parser.newParser lex in le.peekToken
   let nextToken prs = Parser.nextToken prs
-  let ast lex = Parser.parseProgram (Parser.newParser lex) []
+  let ast lex = let (_, stm) = Parser.parseProgram (Parser.newParser lex) []
+    in stm
 end
 
 let ast_testable = Alcotest.testable Ast.pp Ast.eq
@@ -28,7 +29,7 @@ let test_parser () = Alcotest.(check (token_testable))
 
 let test_next_tok () = Alcotest.(check (parser_testable))
   "same parser"
-  {l = (Lexer.newLexer "let a = 1"); curToken = {literal = "a"; t_type = Token.IDENT}; peekToken = {literal = "="; t_type = Token.ASSIGN}}
+  {l = (Lexer.newLexer "let a = 1"); errors = []; curToken = {literal = "a"; t_type = Token.IDENT}; peekToken = {literal = "="; t_type = Token.ASSIGN;}}
   (Lexer.newLexer "let a = 1" |> Parser.newParser |> To_test.nextToken)
 
 

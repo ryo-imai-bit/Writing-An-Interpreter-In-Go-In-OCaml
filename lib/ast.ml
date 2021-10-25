@@ -19,7 +19,7 @@ module Ast = struct
   | Identifier i -> "idt:" ^ i
 
   let stmToString = function
-  | LetStatment i -> "let:" ^ expToString i.value
+  | LetStatment i -> "let:" ^ expToString i.idt ^ " " ^ expToString i.value
   | ReturnStatement -> "ret:"
   | ExpressionStatement -> "exp:"
 

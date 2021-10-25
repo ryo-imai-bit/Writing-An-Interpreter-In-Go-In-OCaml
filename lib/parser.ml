@@ -12,7 +12,7 @@ module Parser = struct
 
   let newParser lex = let (le, tok) = Lexer.nextToken lex
     in let (_, tk) = Lexer.nextToken le
-    in {
+in {
       l = le;
       curToken = tok;
       peekToken = tk;
@@ -46,18 +46,26 @@ module Parser = struct
 
   (* let parseLetStatement prs = (nextToken prs |> nextToken |> nextToken |> nextToken, Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.IntegerLiteral 1;}) *)
   let parseLetStatement prs = match prs.curToken with
-  | {literal = _; t_type = Token.IDENT} -> (prs)
-  | {literal; t_type} -> let errp = parseToEnd prs in {l = errp.l; curToken = errp.curToken; peekToken = errp.peekToken ;errors = prs.errors @ ["litera: "literal ^ " token: " ^ Token.tokenToString t_type]}
+  | {literal = _; t_type = Token.IDENT} -> (nextToken prs |> nextToken |> nextToken, Some (Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.IntegerLiteral 1}))
+  | tok -> let errp = parseToEnd prs
+    in ({
+      l = errp.l;
+      curToken = errp.curToken;
+      peekToken = errp.peekToken;
+      errors = prs.errors @ [Token.tokenToString tok]
+    }, None)
 
   let parseStatement prs = match prs.curToken with
   | {literal = "let"; t_type = Token.LET} -> nextToken prs |> parseLetStatement
-  | _ -> (nextToken prs, Ast.ReturnStatement)
+  | _ -> (nextToken prs, Some Ast.ReturnStatement)
   (* let parseProgram _ _ = [Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.IntegerLiteral 1}] *)
 
-  let parseProgram prs = let rec rpp prs prg = match prs.curToken with
-  | {literal = _; t_type = Token.EOF} -> prg
-  | _ -> let (ps, st) = parseStatement prs in rpp ps prg@[st]
-  in rpp prs
+  let parseProgram prs lst = let rec rpp prs prg = match prs.curToken with
+  | {literal = _; t_type = Token.EOF} -> (prs, prg)
+  | _ -> let (ps, st) = parseStatement prs in match st with
+    | Some stm -> rpp ps (prg@[stm])
+    | None -> (ps, prg)
+  in rpp prs lst
 
   let eq prsa prsb = Token.eq prsa.curToken prsb.curToken && Token.eq prsa.peekToken prsb.peekToken
 
