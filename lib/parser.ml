@@ -17,13 +17,14 @@ module Parser = struct
       peekToken = tk
     }
 
-  let nextToken prs = let (le, tok) = Lexer.nextToken prs.l in {
-    l = le;
-    curToken = prs.peekToken;
-    peekToken = tok;
-  }
+  let nextToken prs = let (le, _) = Lexer.nextToken prs.l
+    in let (_, t) = Lexer.nextToken le in {
+      l = le;
+      curToken = prs.peekToken;
+      peekToken = t;
+    }
 
-  let parseLetStatement prs = (nextToken prs |> nextToken |> nextToken, Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.IntegerLiteral 1;})
+  let parseLetStatement prs = (nextToken prs |> nextToken |> nextToken |> nextToken, Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.IntegerLiteral 1;})
 
   let parseStatement prs = match prs.curToken with
   | {literal = "let"; t_type = Token.LET} -> parseLetStatement prs
@@ -35,7 +36,7 @@ module Parser = struct
   | _ -> let (ps, st) = parseStatement prs in rpp ps prg@[st]
   in rpp prs
 
-  let eq prsa prsb = prsa.curToken = prsb.curToken && prsa.peekToken = prsb.peekToken
+  let eq prsa prsb = Token.eq prsa.curToken prsb.curToken && Token.eq prsa.peekToken prsb.peekToken
 
   let pp ppf prs = Fmt.pf ppf "Parser = { %s }" ("curToken:" ^ Token.tokenToString prs.curToken ^ " peekToken:" ^ Token.tokenToString prs.peekToken)
 end

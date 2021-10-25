@@ -93,7 +93,7 @@ module Token = struct
 
   let newToken t_type literal = {t_type = t_type; literal = literal}
 
-  let eq tok_a tok_b = tok_a = tok_b
+  let eq a b = a.literal = b.literal && a.t_type = b.t_type
 
   let pp ppf tk = Fmt.pf ppf "Token =%s" (tokenToString tk)
   (* (token_to_string tok) *)

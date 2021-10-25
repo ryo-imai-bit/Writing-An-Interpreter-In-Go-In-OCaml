@@ -37,7 +37,7 @@ let () =
   let open Alcotest in
   run "Lexer" [
       "nextToken", [
-          (* test_case "token list" `Slow test_same_ast; *)
+          test_case "token list" `Slow test_same_ast;
           test_case "currentToken" `Slow test_parser;
           test_case "nextToken" `Slow test_next_tok;
         ];
