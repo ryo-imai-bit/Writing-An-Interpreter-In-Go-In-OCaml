@@ -51,6 +51,7 @@ in {
   | {literal = _; t_type = Token.IDENT} -> parseIdentifier prs
   | {literal = _; t_type = Token.STRING} -> parseStringLiteral prs
   | {literal; t_type = Token.BANG}
+  | {literal; t_type = Token.PLUS}
   | {literal; t_type = Token.MINUS} -> (let (pr, exp) = parseExpression (nextToken prs) in match exp with
     | Some ex -> (pr, Some (Ast.PrefixExpression {op = literal; right = ex}))
     | None -> (pr, None))
