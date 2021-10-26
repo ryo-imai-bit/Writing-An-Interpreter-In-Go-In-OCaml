@@ -45,6 +45,7 @@ in {
     errors = prs.errors @ [Token.tokenToString tok]
   }, None)
 
+  (* stringもBANG, MINUSとくっついてしまう *)
   let rec parseExpression prs = match prs.curToken with
   | {literal = _; t_type = Token.INT} -> parseIntegerLiteral prs
   | {literal = _; t_type = Token.IDENT} -> parseIdentifier prs
