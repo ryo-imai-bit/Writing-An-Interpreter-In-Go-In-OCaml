@@ -17,15 +17,20 @@ let parser_testable = Alcotest.testable Parser.pp Parser.eq
 let test_same_ast () = Alcotest.(check (list ast_testable))
   "same ast"
   [
-    Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.IntegerLiteral 1;}
+    Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1;}}
   ]
-  (Lexer.newLexer "let a = 1" |> To_test.ast)
+  (Lexer.newLexer "let a = -1" |> To_test.ast)
 
 
 let test_parser () = Alcotest.(check (token_testable))
   "same ast"
   {t_type = Token.IDENT; literal = "a"}
   (Lexer.newLexer "let a = 1" |> To_test.newparser)
+
+(* let test_parser () = Alcotest.(check (token_testable))
+  "same ast"
+  {t_type = Token.IDENT; literal = "a"}
+  (Lexer.newLexer "let a = 1" |> To_test.newparser) *)
 
 let test_next_tok () = Alcotest.(check (parser_testable))
   "same parser"

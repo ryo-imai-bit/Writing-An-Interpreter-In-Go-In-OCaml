@@ -3,6 +3,7 @@ module Ast = struct
   | IntegerLiteral of int
   | StringLiteral of string
   | Identifier of string
+  | PrefixExpression of {op: string; right: expression}
 
   type statement =
   | LetStatment of {idt: expression; value: expression}
@@ -13,10 +14,11 @@ module Ast = struct
     statements: statement list
   }
 
-  let expToString = function
+  let rec expToString = function
   | IntegerLiteral i -> "int:" ^ string_of_int i
   | StringLiteral i -> "str:" ^ i
   | Identifier i -> "idt:" ^ i
+  | PrefixExpression i -> "pre op: " ^ i.op ^ " right:{" ^ expToString i.right ^ "}"
 
   let stmToString = function
   | LetStatment i -> "let:" ^ expToString i.idt ^ " " ^ expToString i.value
@@ -27,7 +29,6 @@ module Ast = struct
   | [] -> ""
   | h::t -> (stmToString h) ^ " " ^ rrc t
   in rrc stmts
-
 
   let eq a b = a = b
   let pp ppf st = Fmt.pf ppf "Statement = %s" (stmToString st)
