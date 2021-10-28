@@ -102,10 +102,11 @@ module Parser = struct
   | {literal; t_type = Token.IDENT} -> let pr = nextToken prs in (match pr.curToken with
     | {literal = _; t_type = Token.ASSIGN} -> let (p, exp) = parseExpression (nextToken pr) lowest
       in (match exp with
-      | Some e -> (p, Some (Ast.LetStatment {
+      | Some e -> let sp = if Token.isSemicolon p.peekToken then nextToken p else p
+          in (sp, Some (Ast.LetStatment {
               idt = Ast.Identifier literal;
               value = e
-            }))
+          }))
       | None -> (p, None))
     | tk -> errorParse pr tk)
   | tok -> errorParse prs tok
