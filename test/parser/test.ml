@@ -14,23 +14,32 @@ let ast_testable = Alcotest.testable Ast.pp Ast.eq
 let token_testable = Alcotest.testable Token.pp Token.eq
 let parser_testable = Alcotest.testable Parser.pp Parser.eq
 
-let test_same_ast () = Alcotest.(check (list ast_testable))
+let test_prefix () = Alcotest.(check (list ast_testable))
   "same ast"
   [
     Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1;}}
   ]
   (Lexer.newLexer "let a = -1" |> To_test.ast)
 
+let test_infix () = Alcotest.(check (list ast_testable))
+  "same ast"
+  [
+    Ast.LetStatment {
+      idt = Ast.Identifier "a"; value = Ast.InfixExpression {
+        tok = {literal = "+"; t_type = Token.PLUS};
+        op = "+";
+        left = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1};
+        right = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1};
+      }
+    }
+  ]
+  (Lexer.newLexer "let a = -1 + -1" |> To_test.ast)
+
 
 let test_parser () = Alcotest.(check (token_testable))
   "same ast"
   {t_type = Token.IDENT; literal = "a"}
   (Lexer.newLexer "let a = 1" |> To_test.newparser)
-
-(* let test_parser () = Alcotest.(check (token_testable))
-  "same ast"
-  {t_type = Token.IDENT; literal = "a"}
-  (Lexer.newLexer "let a = 1" |> To_test.newparser) *)
 
 let test_next_tok () = Alcotest.(check (parser_testable))
   "same parser"
@@ -43,7 +52,9 @@ let () =
   let open Alcotest in
   run "Lexer" [
       "nextToken", [
-          test_case "ast" `Slow test_same_ast;
+          (* test_case "parse statements" `Slow test_same_ast; *)
+          test_case "parse prefix" `Slow test_prefix;
+          test_case "parse infix" `Slow test_infix;
           test_case "currentToken" `Slow test_parser;
           test_case "nextToken" `Slow test_next_tok;
         ];
