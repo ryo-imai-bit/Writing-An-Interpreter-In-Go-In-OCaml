@@ -63,7 +63,6 @@ module Parser = struct
     errors = prs.errors @ [Token.tokenToString tok]
   }, None)
 
-  (* stringもBANG, MINUSとくっついてしまう *)
   let rec parseExpression prs pcd = let parsePrefixExpression par = (match par.curToken with
   | {literal = _; t_type = Token.INT} -> parseIntegerLiteral par
   | {literal = _; t_type = Token.IDENT} -> parseIdentifier par
@@ -75,28 +74,23 @@ module Parser = struct
     | None -> (pr, None))
   | tok -> errorParse par tok)
   in let parseInfixExpression par lexp = match par.curToken with
-  (* | {literal; t_type = Token.SLASH}
+  | {literal; t_type = Token.SLASH}
   | {literal; t_type = Token.ASTERISK}
-  | {literal; t_type = Token.EQ} *)
+  | {literal; t_type = Token.EQ}
   | {literal; t_type = Token.MINUS}
   | {literal; t_type = Token.PLUS} -> (match parseExpression (nextToken par) (precedence par.curToken.t_type) with
     | (pr, Some exp) -> (pr, Some (Ast.InfixExpression {tok = par.curToken; op = literal; left = lexp; right = exp;}))
     | (pr, None) -> (pr, None))
   | tok -> errorParse par tok
   in match parsePrefixExpression prs with
-  | (ps, Some le) -> (if pcd < (peekPrecedence ps)
-    then match (parseInfixExpression (nextToken ps) le) with
-    | (pars, Some re) -> (pars, Some re)
-    | (pars, None) -> (pars, None)
-    else (ps, Some le))
+  | (ps, Some le) ->
+    let rec rParseInfix pr pcd lexp = (if pcd < (peekPrecedence pr)
+      then (match (parseInfixExpression (nextToken pr) lexp) with
+      | (pars, Some re) -> rParseInfix pars pcd re
+      | (pars, None) -> (pars, None))
+      else (pr, Some lexp))
+    in rParseInfix ps pcd le
   | (ps, None) -> (ps, None)
-
-  (* let rec parsePrefixExpression prs = match prs.curToken with
-  | {literal; t_type = Token.BANG}
-  | {literal; t_type = Token.MINUS} -> (let (pr, exp) = parseExpression (nextToken prs) in match exp with
-    | Some ex -> (pr, Ast.PrefixExpression {op = literal; right = ex})
-    | None -> (pr, None))
-  | tok -> errorParse prs tok *)
 
   let parseLetStatement prs = match prs.curToken with
   | {literal; t_type = Token.IDENT} -> let pr = nextToken prs in (match pr.curToken with

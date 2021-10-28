@@ -18,9 +18,19 @@ let test_statements () = Alcotest.(check (list ast_testable))
   "same ast"
   [
     Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1;}};
-    Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1;}};
+    Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.InfixExpression {
+      tok = {literal = "+"; t_type = Token.PLUS};
+      op = "+";
+      left = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1;};
+      right = Ast.InfixExpression {
+        tok = {literal = "*"; t_type = Token.ASTERISK;};
+        op = "*";
+        left = Ast.IntegerLiteral 1;
+        right = Ast.IntegerLiteral 5;
+      };
+    }};
   ]
-  (Lexer.newLexer "let a = -1;let a = -1" |> To_test.ast)
+  (Lexer.newLexer "let a = -1;let a = -1 + 1 * 5" |> To_test.ast)
 
 let test_prefix () = Alcotest.(check (list ast_testable))
   "same ast"
@@ -39,9 +49,31 @@ let test_infix () = Alcotest.(check (list ast_testable))
         left = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1};
         right = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1};
       }
-    }
+    };
+    Ast.LetStatment {idt = Ast.Identifier "aiai"; value = Ast.InfixExpression {
+        tok = {literal = "-"; t_type = Token.MINUS;};
+        op = "-";
+        left = Ast.InfixExpression {
+          tok = {literal = "+"; t_type = Token.PLUS};
+          op = "+";
+          left = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1;};
+          right = Ast.InfixExpression {
+            tok = {literal = "*"; t_type = Token.ASTERISK;};
+            op = "*";
+            left = Ast.IntegerLiteral 1;
+            right = Ast.IntegerLiteral 5;
+          };
+        };
+        right = Ast.InfixExpression {
+          tok = {literal = "/"; t_type = Token.SLASH;};
+          op = "/";
+          left = Ast.IntegerLiteral 12;
+          right = Ast.IntegerLiteral 3;
+        }
+      };
+    };
   ]
-  (Lexer.newLexer "let a = -1 + -1" |> To_test.ast)
+  (Lexer.newLexer "let a = -1 + -1; let aiai = -1 + 1 * 5 - 12 / 3" |> To_test.ast)
 
 
 let test_parser () = Alcotest.(check (token_testable))
