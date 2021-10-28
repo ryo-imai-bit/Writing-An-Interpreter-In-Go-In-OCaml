@@ -77,6 +77,9 @@ module Parser = struct
   | {literal; t_type = Token.SLASH}
   | {literal; t_type = Token.ASTERISK}
   | {literal; t_type = Token.EQ}
+  | {literal; t_type = Token.NOT_EQ}
+  | {literal; t_type = Token.LT}
+  | {literal; t_type = Token.GT}
   | {literal; t_type = Token.MINUS}
   | {literal; t_type = Token.PLUS} -> (match parseExpression (nextToken par) (precedence par.curToken.t_type) with
     | (pr, Some exp) -> (pr, Some (Ast.InfixExpression {tok = par.curToken; op = literal; left = lexp; right = exp;}))
