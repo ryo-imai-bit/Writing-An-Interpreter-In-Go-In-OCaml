@@ -63,7 +63,7 @@ module Parser = struct
     errors = prs.errors @ [Token.tokenToString tok]
   }, None)
 
-  let rec parseExpression prs pcd = let parsePrefixExpression par = (match par.curToken with
+  let parsePrefixExpression par parseExpression = (match par.curToken with
   | {literal = _; t_type = Token.INT} -> parseIntegerLiteral par
   | {literal = _; t_type = Token.IDENT} -> parseIdentifier par
   | {literal = _; t_type = Token.STRING} -> parseStringLiteral par
@@ -73,7 +73,8 @@ module Parser = struct
     | Some ex -> (pr, Some (Ast.PrefixExpression {op = literal; right = ex}))
     | None -> (pr, None))
   | tok -> errorParse par tok)
-  in let parseInfixExpression par lexp = match par.curToken with
+
+  let parseInfixExpression par lexp parseExpression = match par.curToken with
   | {literal; t_type = Token.SLASH}
   | {literal; t_type = Token.ASTERISK}
   | {literal; t_type = Token.EQ}
@@ -85,10 +86,11 @@ module Parser = struct
     | (pr, Some exp) -> (pr, Some (Ast.InfixExpression {tok = par.curToken; op = literal; left = lexp; right = exp;}))
     | (pr, None) -> (pr, None))
   | tok -> errorParse par tok
-  in match parsePrefixExpression prs with
+
+  let rec parseExpression prs pcd = match parsePrefixExpression prs parseExpression with
   | (ps, Some le) ->
     let rec rParseInfix pr pcd lexp = (if pcd < (peekPrecedence pr)
-      then (match (parseInfixExpression (nextToken pr) lexp) with
+      then (match (parseInfixExpression (nextToken pr) lexp parseExpression) with
       | (pars, Some re) -> rParseInfix pars pcd re
       | (pars, None) -> (pars, None))
       else (pr, Some lexp))
