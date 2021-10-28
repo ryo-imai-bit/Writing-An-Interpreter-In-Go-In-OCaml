@@ -91,6 +91,8 @@ module Token = struct
     | "return" -> RETURN
     | _ -> IDENT
 
+  let isSemicolon tok = tok.t_type = SEMICOLON
+
   let newToken t_type literal = {t_type = t_type; literal = literal}
 
   let eq a b = a.literal = b.literal && a.t_type = b.t_type
