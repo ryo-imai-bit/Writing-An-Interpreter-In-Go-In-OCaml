@@ -30,10 +30,11 @@ let test_statements () = Alcotest.(check (list ast_testable))
     Ast.ExpressionStatement {exp = Ast.InfixExpression {
       op = "+";
       left = Ast.PrefixExpression {op = "!"; right = Ast.Identifier "hogehoge";};
-      right = Ast.InfixExpression {op = "*"; left = Ast.IntegerLiteral 12; right = Ast.IntegerLiteral 3;};
+      right = Ast.InfixExpression {op = "*"; left = Ast.IntegerLiteral 12; right = Ast.BooleanLiteral true ;};
     }};
+    Ast.ExpressionStatement {exp = Ast.BooleanLiteral false};
   ]
-  (Lexer.newLexer "return hoge;let a = -1 + 1 * 5; !hogehoge + 12 * 3" |> To_test.ast)
+  (Lexer.newLexer "return hoge;let a = -1 + 1 * 5; !hogehoge + 12 * true; false" |> To_test.ast)
 
 let test_let_statements () = Alcotest.(check (list ast_testable))
   "same ast"

@@ -56,6 +56,8 @@ module Parser = struct
 
   let parseStringLiteral prs = (prs, Some (Ast.StringLiteral prs.curToken.literal))
 
+  let parseBooleanLiteral prs = (prs, Some (Ast.BooleanLiteral (bool_of_string prs.curToken.literal)))
+
   let errorParse prs = ({
     l = prs.l;
     curToken = prs.curToken;
@@ -67,6 +69,8 @@ module Parser = struct
   | {literal = _; t_type = Token.INT} -> parseIntegerLiteral par
   | {literal = _; t_type = Token.IDENT} -> parseIdentifier par
   | {literal = _; t_type = Token.STRING} -> parseStringLiteral par
+  | {literal = _; t_type = Token.FALSE}
+  | {literal = _; t_type = Token.TRUE} -> parseBooleanLiteral par
   | {literal; t_type = Token.BANG}
   | {literal; t_type = Token.MINUS} -> (let (pr, exp) = parseExpression (nextToken par) prefixPrecedence
     in match exp with

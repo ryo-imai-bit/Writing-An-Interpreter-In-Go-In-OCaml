@@ -4,6 +4,7 @@ module Ast = struct
   | IntegerLiteral of int
   | StringLiteral of string
   | Identifier of string
+  | BooleanLiteral of bool
   | PrefixExpression of {op: string; right: expression}
   | InfixExpression of {op: string; left: expression; right: expression;}
 
@@ -20,6 +21,7 @@ module Ast = struct
   | IntegerLiteral i -> "(INT " ^ string_of_int i ^ ") "
   | StringLiteral i -> "(STR " ^ i ^ ") "
   | Identifier i -> "(IDT " ^ i ^ ") "
+  | BooleanLiteral i -> "(BOOL " ^ string_of_bool i ^ ") "
   | PrefixExpression i -> "(PREFIX {op: " ^ i.op ^ " right:{" ^ expToString i.right ^ "}}) "
   | InfixExpression i -> "(INFIX {op: " ^ i.op ^ " left:{" ^ expToString i.left ^ "}"
     ^ " right:{" ^ expToString i.right ^ "}}) "
