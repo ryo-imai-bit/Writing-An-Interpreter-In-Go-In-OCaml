@@ -19,11 +19,9 @@ let test_statements () = Alcotest.(check (list ast_testable))
   [
     Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1;}};
     Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.InfixExpression {
-      tok = {literal = "+"; t_type = Token.PLUS};
       op = "+";
       left = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1;};
       right = Ast.InfixExpression {
-        tok = {literal = "*"; t_type = Token.ASTERISK;};
         op = "*";
         left = Ast.IntegerLiteral 1;
         right = Ast.IntegerLiteral 5;
@@ -44,28 +42,23 @@ let test_infix () = Alcotest.(check (list ast_testable))
   [
     Ast.LetStatment {
       idt = Ast.Identifier "a"; value = Ast.InfixExpression {
-        tok = {literal = "+"; t_type = Token.PLUS};
         op = "+";
         left = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1};
         right = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1};
       }
     };
     Ast.LetStatment {idt = Ast.Identifier "aiai"; value = Ast.InfixExpression {
-        tok = {literal = "-"; t_type = Token.MINUS;};
         op = "-";
         left = Ast.InfixExpression {
-          tok = {literal = "+"; t_type = Token.PLUS};
           op = "+";
           left = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1;};
           right = Ast.InfixExpression {
-            tok = {literal = "*"; t_type = Token.ASTERISK;};
             op = "*";
             left = Ast.IntegerLiteral 1;
             right = Ast.IntegerLiteral 5;
           };
         };
         right = Ast.InfixExpression {
-          tok = {literal = "/"; t_type = Token.SLASH;};
           op = "/";
           left = Ast.IntegerLiteral 12;
           right = Ast.IntegerLiteral 3;

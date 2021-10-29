@@ -5,30 +5,29 @@ module Ast = struct
   | StringLiteral of string
   | Identifier of string
   | PrefixExpression of {op: string; right: expression}
-  | InfixExpression of {tok: Token.token; op: string; left: expression; right: expression;}
+  | InfixExpression of {op: string; left: expression; right: expression;}
 
   type statement =
-  | LetStatment of {idt: expression; value: expression}
-  | ReturnStatement
-  | ExpressionStatement
+  | LetStatment of {idt: expression; value: expression;}
+  | ReturnStatement of {value: expression;}
+  | ExpressionStatement of {exp: expression;}
 
   type program = {
     statements: statement list
   }
 
   let rec expToString = function
-  | IntegerLiteral i -> "(int:" ^ string_of_int i ^ ") "
-  | StringLiteral i -> "(str:" ^ i ^ ") "
-  | Identifier i -> "(idt:" ^ i ^ ") "
+  | IntegerLiteral i -> "(INT " ^ string_of_int i ^ ") "
+  | StringLiteral i -> "(STR " ^ i ^ ") "
+  | Identifier i -> "(IDT " ^ i ^ ") "
   | PrefixExpression i -> "(PREFIX {op: " ^ i.op ^ " right:{" ^ expToString i.right ^ "}}) "
-  | InfixExpression i -> "(INFIX {op: " ^ i.op ^ " tok: " ^ Token.tokenToString i.tok
-    ^ " left:{" ^ expToString i.left ^ "}"
+  | InfixExpression i -> "(INFIX {op: " ^ i.op ^ " left:{" ^ expToString i.left ^ "}"
     ^ " right:{" ^ expToString i.right ^ "}}) "
 
   let stmToString = function
-  | LetStatment i -> "let:" ^ expToString i.idt ^ " " ^ expToString i.value
-  | ReturnStatement -> "ret:"
-  | ExpressionStatement -> "exp:"
+  | LetStatment i -> "LET:" ^ expToString i.idt ^ " " ^ expToString i.value
+  | ReturnStatement i -> "RET:" ^ expToString i.value
+  | ExpressionStatement i -> "EXP:" ^ expToString i.exp
 
   let stmsToString stmts = let rec rrc = function
   | [] -> ""

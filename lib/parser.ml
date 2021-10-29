@@ -56,11 +56,11 @@ module Parser = struct
 
   let parseStringLiteral prs = (prs, Some (Ast.StringLiteral prs.curToken.literal))
 
-  let errorParse prs tok = ({
+  let errorParse prs = ({
     l = prs.l;
     curToken = prs.curToken;
     peekToken = prs.peekToken;
-    errors = prs.errors @ [Token.tokenToString tok]
+    errors = prs.errors @ [Token.tokenToString prs.curToken]
   }, None)
 
   let parsePrefixExpression par parseExpression = (match par.curToken with
@@ -72,7 +72,7 @@ module Parser = struct
     in match exp with
     | Some ex -> (pr, Some (Ast.PrefixExpression {op = literal; right = ex}))
     | None -> (pr, None))
-  | tok -> errorParse par tok)
+  | _ -> errorParse par)
 
   let parseInfixExpression par lexp parseExpression = match par.curToken with
   | {literal; t_type = Token.SLASH}
@@ -83,9 +83,9 @@ module Parser = struct
   | {literal; t_type = Token.GT}
   | {literal; t_type = Token.MINUS}
   | {literal; t_type = Token.PLUS} -> (match parseExpression (nextToken par) (precedence par.curToken.t_type) with
-    | (pr, Some exp) -> (pr, Some (Ast.InfixExpression {tok = par.curToken; op = literal; left = lexp; right = exp;}))
+    | (pr, Some exp) -> (pr, Some (Ast.InfixExpression {op = literal; left = lexp; right = exp;}))
     | (pr, None) -> (pr, None))
-  | tok -> errorParse par tok
+  | _ -> errorParse par
 
   let rec parseExpression prs pcd = match parsePrefixExpression prs parseExpression with
   | (ps, Some le) ->
@@ -107,12 +107,27 @@ module Parser = struct
               value = e
           }))
       | None -> (p, None))
-    | tk -> errorParse pr tk)
-  | tok -> errorParse prs tok
+    | _  -> errorParse pr)
+  | _ -> errorParse prs
+
+  let parseReturnStatement prs = match parseExpression prs lowest with
+  | (ps, Some exp) -> (let p = if Token.isSemicolon ps.peekToken then nextToken ps else ps
+        in (p, Some (Ast.ReturnStatement {
+          value = exp;
+        })))
+  | (ps, None) -> (ps, None)
+
+  let parseExpressionStatement prs = match parseExpression prs lowest with
+  | (ps, Some exp) -> (let p = if Token.isSemicolon ps.peekToken then nextToken ps else ps
+        in (p, Some (Ast.ExpressionStatement {
+          exp = exp;
+        })))
+  | (ps, None) -> (ps, None)
 
   let parseStatement prs = match prs.curToken with
   | {literal = "let"; t_type = Token.LET} -> nextToken prs |> parseLetStatement
-  | _ -> (nextToken prs, Some Ast.ReturnStatement)
+  | {literal = "let"; t_type = Token.RETURN} -> nextToken prs |> parseReturnStatement
+  | _ -> nextToken prs |> parseExpressionStatement
   (* let parseProgram _ _ = [Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.IntegerLiteral 1}] *)
 
   let parseProgram prs lst = let rec rpp prs prg = match prs.curToken with
