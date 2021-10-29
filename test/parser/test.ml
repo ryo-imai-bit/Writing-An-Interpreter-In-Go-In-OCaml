@@ -17,6 +17,27 @@ let parser_testable = Alcotest.testable Parser.pp Parser.eq
 let test_statements () = Alcotest.(check (list ast_testable))
   "same ast"
   [
+    Ast.ReturnStatement {value = Ast.Identifier "hoge"};
+    Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.InfixExpression {
+      op = "+";
+      left = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1;};
+      right = Ast.InfixExpression {
+        op = "*";
+        left = Ast.IntegerLiteral 1;
+        right = Ast.IntegerLiteral 5;
+      };
+    }};
+    Ast.ExpressionStatement {exp = Ast.InfixExpression {
+      op = "+";
+      left = Ast.PrefixExpression {op = "!"; right = Ast.Identifier "hogehoge";};
+      right = Ast.InfixExpression {op = "*"; left = Ast.IntegerLiteral 12; right = Ast.IntegerLiteral 3;};
+    }};
+  ]
+  (Lexer.newLexer "return hoge;let a = -1 + 1 * 5; !hogehoge + 12 * 3" |> To_test.ast)
+
+let test_let_statement () = Alcotest.(check (list ast_testable))
+  "same ast"
+  [
     Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1;}};
     Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.InfixExpression {
       op = "+";

@@ -125,9 +125,9 @@ module Parser = struct
   | (ps, None) -> (ps, None)
 
   let parseStatement prs = match prs.curToken with
-  | {literal = "let"; t_type = Token.LET} -> nextToken prs |> parseLetStatement
-  | {literal = "let"; t_type = Token.RETURN} -> nextToken prs |> parseReturnStatement
-  | _ -> nextToken prs |> parseExpressionStatement
+  | {literal = _; t_type = Token.LET} -> nextToken prs |> parseLetStatement
+  | {literal = _; t_type = Token.RETURN} -> nextToken prs |> parseReturnStatement
+  | _ -> parseExpressionStatement prs
   (* let parseProgram _ _ = [Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.IntegerLiteral 1}] *)
 
   let parseProgram prs lst = let rec rpp prs prg = match prs.curToken with
