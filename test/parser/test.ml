@@ -35,7 +35,7 @@ let test_statements () = Alcotest.(check (list ast_testable))
   ]
   (Lexer.newLexer "return hoge;let a = -1 + 1 * 5; !hogehoge + 12 * 3" |> To_test.ast)
 
-let test_let_statement () = Alcotest.(check (list ast_testable))
+let test_let_statements () = Alcotest.(check (list ast_testable))
   "same ast"
   [
     Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1;}};
@@ -51,12 +51,37 @@ let test_let_statement () = Alcotest.(check (list ast_testable))
   ]
   (Lexer.newLexer "let a = -1;let a = -1 + 1 * 5" |> To_test.ast)
 
+let test_return_statements () = Alcotest.(check (list ast_testable))
+  "same ast"
+  [
+    Ast.ReturnStatement {value = Ast.Identifier "hoge"};
+    Ast.ReturnStatement {value = Ast.InfixExpression {
+      op = "-";
+      left = Ast.InfixExpression {op = "*"; left = Ast.IntegerLiteral 123; right = Ast.IntegerLiteral 23;};
+      right = Ast.Identifier "hoge" ;
+    }};
+  ]
+  (Lexer.newLexer "return hoge; return 123 * 23 - hoge" |> To_test.ast)
+
+let test_expression_statements () = Alcotest.(check (list ast_testable))
+  "same ast"
+  [
+    Ast.ExpressionStatement {exp = Ast.InfixExpression {op = "*"; left = Ast.Identifier "hogehoge"; right = Ast.Identifier "iu"}};
+    Ast.ExpressionStatement {exp = Ast.InfixExpression {
+      op = "*";
+      left = Ast.IntegerLiteral 100;
+      right = Ast.IntegerLiteral 12;
+    }};
+  ]
+  (Lexer.newLexer "hogehoge * iu; 100 * 12" |> To_test.ast)
+
+
 let test_prefix () = Alcotest.(check (list ast_testable))
   "same ast"
   [
-    Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1;}}
+    Ast.ExpressionStatement {exp = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1;}}
   ]
-  (Lexer.newLexer "let a = -1" |> To_test.ast)
+  (Lexer.newLexer "-1" |> To_test.ast)
 
 let test_infix () = Alcotest.(check (list ast_testable))
   "same ast"
@@ -107,6 +132,9 @@ let () =
   run "Lexer" [
       "nextToken", [
           test_case "parse statements" `Slow test_statements;
+          test_case "parse LetStatement" `Slow test_let_statements;
+          test_case "parse ReturnStatement" `Slow test_return_statements;
+          test_case "parse ExpressionStatement" `Slow test_expression_statements;
           test_case "parse prefix" `Slow test_prefix;
           test_case "parse infix" `Slow test_infix;
           test_case "currentToken" `Slow test_parser;
