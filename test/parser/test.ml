@@ -80,9 +80,24 @@ let test_expression_statements () = Alcotest.(check (list ast_testable))
 let test_prefix () = Alcotest.(check (list ast_testable))
   "same ast"
   [
-    Ast.ExpressionStatement {exp = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1;}}
+    Ast.ExpressionStatement {exp = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1;}};
+    Ast.ExpressionStatement {
+      exp = Ast.InfixExpression {
+        op = "*";
+        left = Ast.IntegerLiteral 1;
+        right = Ast.InfixExpression {
+          op = "+";
+          left = Ast.InfixExpression {
+            op = "-";
+            left = Ast.IntegerLiteral 3;
+            right = Ast.IntegerLiteral 1;
+          };
+          right = Ast.IntegerLiteral 3;
+        };
+      };
+    };
   ]
-  (Lexer.newLexer "-1" |> To_test.ast)
+  (Lexer.newLexer "-1; 1 * (2 - 1 + 3)" |> To_test.ast)
 
 let test_infix () = Alcotest.(check (list ast_testable))
   "same ast"
@@ -109,7 +124,7 @@ let test_infix () = Alcotest.(check (list ast_testable))
           op = "/";
           left = Ast.IntegerLiteral 12;
           right = Ast.IntegerLiteral 3;
-        }
+        };
       };
     };
   ]

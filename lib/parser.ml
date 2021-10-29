@@ -71,6 +71,9 @@ module Parser = struct
   | {literal = _; t_type = Token.STRING} -> parseStringLiteral par
   | {literal = _; t_type = Token.FALSE}
   | {literal = _; t_type = Token.TRUE} -> parseBooleanLiteral par
+  | {literal = _; t_type = Token.LPAREN} -> (match parseExpression par lowest with
+    | (pr, Some exp) -> if pr.peekToken.t_type = Token.RPAREN then (nextToken pr, Some exp) else (pr, None)
+    | (pr, None) -> (pr, None))
   | {literal; t_type = Token.BANG}
   | {literal; t_type = Token.MINUS} -> (let (pr, exp) = parseExpression (nextToken par) prefixPrecedence
     in match exp with
