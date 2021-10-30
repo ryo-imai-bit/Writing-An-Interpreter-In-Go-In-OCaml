@@ -6,8 +6,10 @@ include Lexer
 module To_test = struct
   let newparser lex = let le = Parser.newParser lex in le.peekToken
   let nextToken prs = Parser.nextToken prs
-  let ast lex = let (_, stm) = Parser.parseProgram (Parser.newParser lex) []
-    in stm
+  (* let ast lex = let (_, stm) = Parser.parseProgram (Parser.newParser lex) []
+    in stm *)
+  let ast lex = let (pr, stm) = Parser.parseProgram (Parser.newParser lex) []
+    in if pr.errors = [] then stm else raise (Failure (Parser.errorsToString pr.errors))
 end
 
 let ast_testable = Alcotest.testable Ast.pp Ast.eq
@@ -33,13 +35,33 @@ let test_statements () = Alcotest.(check (list ast_testable))
       right = Ast.InfixExpression {op = "*"; left = Ast.IntegerLiteral 12; right = Ast.BooleanLiteral true ;};
     }};
     Ast.ExpressionStatement {exp = Ast.BooleanLiteral false};
+    Ast.ExpressionStatement {exp = Ast.IfExpression {
+      cond = Ast.InfixExpression {
+        op = "==";
+        left = Ast.InfixExpression {op = "*"; left = Ast.IntegerLiteral 2; right = Ast.IntegerLiteral 3};
+        right = Ast.Identifier "hoge";
+      };
+      cons = Ast.BlockStatement {stms = [
+        Ast.LetStatment {idt = Ast.Identifier "hoge"; value = Ast.IntegerLiteral 3};
+        Ast.ExpressionStatement {
+          exp = Ast.InfixExpression {op = "=="; left = Ast.Identifier "foo"; right = Ast.Identifier "hoge";}
+        };
+      ]};
+      alt = Some (Ast.BlockStatement {stms = [
+        Ast.ExpressionStatement {exp = Ast.Identifier "hoge"};
+      ]});
+    };
+    };
   ]
-  (Lexer.newLexer "return hoge;let a = -1 + 1 * 5; !hogehoge + 12 * true; false" |> To_test.ast)
+  (Lexer.newLexer "return hoge;let a = -1 + 1 * 5; !hogehoge + 12 * true; false; if (2 * 3 == hoge) { let hoge = 3; foo == hoge;} else {hoge}" |> To_test.ast)
 
 let test_let_statements () = Alcotest.(check (list ast_testable))
   "same ast"
   [
-    Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1;}};
+    Ast.LetStatment {
+      idt = Ast.Identifier "a";
+      value = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1;}
+    };
     Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.InfixExpression {
       op = "+";
       left = Ast.PrefixExpression {op = "-"; right = Ast.IntegerLiteral 1;};
@@ -58,7 +80,9 @@ let test_return_statements () = Alcotest.(check (list ast_testable))
     Ast.ReturnStatement {value = Ast.Identifier "hoge"};
     Ast.ReturnStatement {value = Ast.InfixExpression {
       op = "-";
-      left = Ast.InfixExpression {op = "*"; left = Ast.IntegerLiteral 123; right = Ast.IntegerLiteral 23;};
+      left = Ast.InfixExpression {
+        op = "*"; left = Ast.IntegerLiteral 123; right = Ast.IntegerLiteral 23;
+      };
       right = Ast.Identifier "hoge" ;
     }};
   ]
@@ -67,14 +91,21 @@ let test_return_statements () = Alcotest.(check (list ast_testable))
 let test_expression_statements () = Alcotest.(check (list ast_testable))
   "same ast"
   [
-    Ast.ExpressionStatement {exp = Ast.InfixExpression {op = "*"; left = Ast.Identifier "hogehoge"; right = Ast.Identifier "iu"}};
+    Ast.ExpressionStatement {
+      exp = Ast.InfixExpression {op = "*"; left = Ast.Identifier "hogehoge"; right = Ast.Identifier "iu"}
+    };
     Ast.ExpressionStatement {exp = Ast.InfixExpression {
       op = "*";
       left = Ast.IntegerLiteral 100;
       right = Ast.IntegerLiteral 12;
     }};
+    Ast.ExpressionStatement {exp = Ast.InfixExpression {
+      op = "==";
+      left = Ast.InfixExpression {op = "*"; left = Ast.IntegerLiteral 123; right = Ast.IntegerLiteral 21;};
+      right = Ast.Identifier "hoge";
+    }};
   ]
-  (Lexer.newLexer "hogehoge * iu; 100 * 12" |> To_test.ast)
+  (Lexer.newLexer "hogehoge * iu; 100 * 12; 123 * 21 == hoge" |> To_test.ast)
 
 
 let test_prefix () = Alcotest.(check (list ast_testable))
@@ -89,7 +120,7 @@ let test_prefix () = Alcotest.(check (list ast_testable))
           op = "+";
           left = Ast.InfixExpression {
             op = "-";
-            left = Ast.IntegerLiteral 3;
+            left = Ast.IntegerLiteral 2;
             right = Ast.IntegerLiteral 1;
           };
           right = Ast.IntegerLiteral 3;

@@ -7,11 +7,13 @@ module Ast = struct
   | BooleanLiteral of bool
   | PrefixExpression of {op: string; right: expression}
   | InfixExpression of {op: string; left: expression; right: expression;}
+  | IfExpression of {cond: expression; cons: statement; alt: statement option;}
 
-  type statement =
+  and statement =
   | LetStatment of {idt: expression; value: expression;}
   | ReturnStatement of {value: expression;}
   | ExpressionStatement of {exp: expression;}
+  | BlockStatement of {stms: statement list}
 
   type program = {
     statements: statement list
@@ -25,11 +27,20 @@ module Ast = struct
   | PrefixExpression i -> "(PREFIX {op: " ^ i.op ^ " right:{" ^ expToString i.right ^ "}}) "
   | InfixExpression i -> "(INFIX {op: " ^ i.op ^ " left:{" ^ expToString i.left ^ "}"
     ^ " right:{" ^ expToString i.right ^ "}}) "
+  | IfExpression i -> let alt = match i.alt with
+    | Some i -> stmToString i
+    | None -> "" in "(IF {cond: " ^ expToString i.cond ^
+    " cons: " ^ stmToString i.cons
+    ^ alt ^ "})"
 
-  let stmToString = function
+  and stmToString = function
   | LetStatment i -> "LET:" ^ expToString i.idt ^ " " ^ expToString i.value
   | ReturnStatement i -> "RET:" ^ expToString i.value
   | ExpressionStatement i -> "EXP:" ^ expToString i.exp
+  | BlockStatement i -> let rec rstmts = function
+      | [] -> ""
+      | h::t -> "[ " ^ stmToString h ^ " ]" ^ rstmts t
+    in "BLOCK:" ^ rstmts i.stms
 
   let stmsToString stmts = let rec rrc = function
   | [] -> ""
