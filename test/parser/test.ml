@@ -105,7 +105,7 @@ let test_expression_statements () = Alcotest.(check (list ast_testable))
       right = Ast.Identifier "hoge";
     }};
   ]
-  (Lexer.newLexer "hogehoge * iu; 100 * 12; 123 * 21 == hoge" |> To_test.ast)
+  (Lexer.newLexer "hogehoge * iu; 100 * 12; 123 * 21 == hoge;" |> To_test.ast)
 
 
 let test_prefix () = Alcotest.(check (list ast_testable))

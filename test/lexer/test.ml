@@ -85,6 +85,6 @@ let () =
   run "Lexer" [
       "nextToken", [
           test_case "token list" `Slow test_same_tok;
-          test_case "lex syntax"     `Quick test_same_tok2;
+          test_case "token list" `Slow test_same_tok2;
         ];
     ]
