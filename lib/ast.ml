@@ -10,6 +10,7 @@ module Ast = struct
   | IfExpression of {cond: expression; cons: statement; alt: statement option;}
   | FunctionLiteral of {prms: expression list; body: statement}
   | ArrayLiteral of {elms: expression list;}
+  | CallExpression of {fn: expression; args: expression list;}
 
   and statement =
   | LetStatment of {idt: expression; value: expression;}
@@ -36,6 +37,8 @@ module Ast = struct
     ^ alt ^ "})"
   | FunctionLiteral i -> "(FN {prms: " ^ expsToString i.prms ^ " body: " ^ stmToString i.body ^ "})"
   | ArrayLiteral i -> expsToString i.elms
+  | CallExpression i -> "(CALLEXP {fn: " ^ expToString i.fn ^ " args: " ^ expsToString i.args ^ "})"
+
   and expsToString = function
   | [] -> ""
   | h::t -> "[ " ^ expToString h ^ " ]" ^ (expsToString t)

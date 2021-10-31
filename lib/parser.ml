@@ -138,6 +138,10 @@ module Parser = struct
   | (pr, Some elist) -> (pr, Some (Ast.ArrayLiteral {elms = elist}))
   | (pr, None) -> (pr, None)
 
+  let parseCallExpression prs lexp parseExpression parseStatement =
+    match parseExpressionList prs parseExpression parseStatement Token.RPAREN with
+    | (pr, Some elist) -> (pr, Some (Ast.CallExpression {fn = lexp; args = elist;}))
+    | (pr, None) -> (pr, None)
 
   let parsePrefixExpression par parseExpression parseStatement = (match par.curToken with
   | {literal = _; t_type = Token.INT} -> parseIntegerLiteral par
@@ -148,6 +152,7 @@ module Parser = struct
   | {literal = _; t_type = Token.IF} -> parseIfExpression par parseExpression parseStatement
   | {literal = _; t_type = Token.FUNCTION} -> parseFunctionLiteral par parseStatement
   | {literal = _; t_type = Token.LBRACKET} -> parseArrayLiteral par parseExpression parseStatement Token.RBRACKET
+  (* | {literal = _; t_type = Token.LBRACE} -> parseArrayLiteral par parseExpression parseStatement Token.RBRACKET *)
   | {literal = _; t_type = Token.LPAREN} -> (match (parseExpression (nextToken par) lowest parseStatement) with
     | (pr, Some exp) -> if pr.peekToken.t_type = Token.RPAREN
       then (nextToken pr, Some exp)
@@ -170,6 +175,7 @@ module Parser = struct
   | {literal; t_type = Token.PLUS} -> (match parseExpression (nextToken par) (precedence par.curToken.t_type) parseStatement with
     | (pr, Some exp) -> (pr, Some (Ast.InfixExpression {op = literal; left = lexp; right = exp;}))
     | (pr, None) -> (pr, None))
+  | {literal = _; t_type = Token.LPAREN} -> parseCallExpression par lexp parseExpression parseStatement
   | _ -> errorParse par "no matching infix parse"
 
   let rec parseExpression prs pcd parseStatement = match (parsePrefixExpression prs parseExpression parseStatement) with

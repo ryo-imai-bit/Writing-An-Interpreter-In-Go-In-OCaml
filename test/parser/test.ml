@@ -83,7 +83,7 @@ let test_statements () = Alcotest.(check (list ast_testable))
     !hogehoge + 12 * true;
     false;
     if (2 * 3 == hoge) { let hoge = 3; foo == hoge;} else {hoge};
-    [1, 3, fn (a, b) { 12 * 3}]
+    [1, 3, fn (a, b) { 12 * 3}];
   " |> To_test.ast)
 
 let test_let_statements () = Alcotest.(check (list ast_testable))
@@ -206,8 +206,45 @@ let test_infix () = Alcotest.(check (list ast_testable))
         };
       };
     };
+    Ast.ExpressionStatement {exp = Ast.CallExpression {
+        fn = Ast.Identifier "aie";
+        args = [
+          Ast.InfixExpression {op = "+"; left = Ast.IntegerLiteral 1; right = Ast.IntegerLiteral 2;}
+        ];
+      }
+    };
+    Ast.ExpressionStatement {exp = Ast.CallExpression {
+        fn = Ast.FunctionLiteral {
+          prms = [
+            Ast.Identifier "a";
+            Ast.Identifier "b";
+          ];
+          body = Ast.BlockStatement {
+            stms = [
+              Ast.ReturnStatement {
+                value = Ast.InfixExpression {
+                  op = "*";
+                  left = Ast.Identifier "a";
+                  right = Ast.IntegerLiteral 2;
+                }
+              };
+              Ast.ExpressionStatement {exp = Ast.Identifier "b"};
+            ]
+          };
+        };
+        args = [
+          Ast.InfixExpression {op = "+"; left = Ast.IntegerLiteral 1; right = Ast.IntegerLiteral 2;};
+          Ast.Identifier "aiu";
+        ];
+      }
+    };
   ]
-  (Lexer.newLexer "let a = -1 + -1; let aiai = -1 + 1 * 5 - 12 / 3" |> To_test.ast)
+  (Lexer.newLexer "
+  let a = -1 + -1;
+  let aiai = -1 + 1 * 5 - 12 / 3;
+  aie(1+2);
+  fn(a, b) { return a * 2; b }(1+2, aiu);
+  " |> To_test.ast)
 
 
 let test_parser () = Alcotest.(check (token_testable))
