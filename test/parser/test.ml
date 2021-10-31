@@ -6,10 +6,10 @@ include Lexer
 module To_test = struct
   let newparser lex = let le = Parser.newParser lex in le.peekToken
   let nextToken prs = Parser.nextToken prs
-  let ast lex = let (_, stm) = Parser.parseProgram (Parser.newParser lex) []
-    in stm
-  (* let ast lex = let (pr, stm) = Parser.parseProgram (Parser.newParser lex) []
-    in if pr.errors = [] then stm else raise (Failure (Parser.errorsToString pr.errors)) *)
+  (* let ast lex = let (_, stm) = Parser.parseProgram (Parser.newParser lex) []
+    in stm *)
+  let ast lex = let (pr, stm) = Parser.parseProgram (Parser.newParser lex) []
+    in if pr.errors = [] then stm else raise (Failure (Parser.errorsToString pr.errors))
 end
 
 let ast_testable = Alcotest.testable Ast.pp Ast.eq
@@ -77,6 +77,12 @@ let test_statements () = Alcotest.(check (list ast_testable))
         ]
       };
     };
+    Ast.ExpressionStatement {
+      exp = Ast.IndexExpression {left = Ast.Identifier "hoge"; index = Ast.Identifier "hogehoge"};
+    };
+    Ast.ExpressionStatement {
+      exp = Ast.IndexExpression {left = Ast.Identifier "fuga"; index = Ast.Identifier "kame"};
+    };
   ]
   (Lexer.newLexer "return hoge;
     let a = -1 + 1 * 5;
@@ -84,6 +90,8 @@ let test_statements () = Alcotest.(check (list ast_testable))
     false;
     if (2 * 3 == hoge) { let hoge = 3; foo == hoge;} else {hoge};
     [1, 3, fn (a, b) { 12 * 3}];
+    hoge[hogehoge];
+    fuga[kame];
   " |> To_test.ast)
 
 let test_let_statements () = Alcotest.(check (list ast_testable))

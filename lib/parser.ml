@@ -143,6 +143,11 @@ module Parser = struct
     | (pr, Some elist) -> (pr, Some (Ast.CallExpression {fn = lexp; args = elist;}))
     | (pr, None) -> (pr, None)
 
+  let parseIndexExpression prs lexp parseExpression parseStatement = match parseExpression (nextToken prs) lowest parseStatement with
+  | (pr, Some exp) -> (nextToken pr, Some (Ast.IndexExpression {left = lexp; index = exp;}))
+  | (pr, None) -> (pr, None)
+
+
   let parsePrefixExpression par parseExpression parseStatement = (match par.curToken with
   | {literal = _; t_type = Token.INT} -> parseIntegerLiteral par
   | {literal = _; t_type = Token.IDENT} -> parseIdentifier par
@@ -176,6 +181,7 @@ module Parser = struct
     | (pr, Some exp) -> (pr, Some (Ast.InfixExpression {op = literal; left = lexp; right = exp;}))
     | (pr, None) -> (pr, None))
   | {literal = _; t_type = Token.LPAREN} -> parseCallExpression par lexp parseExpression parseStatement
+  | {literal = _; t_type = Token.LBRACKET} -> parseIndexExpression par lexp parseExpression parseStatement
   | _ -> errorParse par "no matching infix parse"
 
   let rec parseExpression prs pcd parseStatement = match (parsePrefixExpression prs parseExpression parseStatement) with

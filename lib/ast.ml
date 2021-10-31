@@ -11,6 +11,7 @@ module Ast = struct
   | FunctionLiteral of {prms: expression list; body: statement}
   | ArrayLiteral of {elms: expression list;}
   | CallExpression of {fn: expression; args: expression list;}
+  | IndexExpression of {left: expression; index: expression}
 
   and statement =
   | LetStatment of {idt: expression; value: expression;}
@@ -38,6 +39,7 @@ module Ast = struct
   | FunctionLiteral i -> "(FN {prms: " ^ expsToString i.prms ^ " body: " ^ stmToString i.body ^ "})"
   | ArrayLiteral i -> expsToString i.elms
   | CallExpression i -> "(CALLEXP {fn: " ^ expToString i.fn ^ " args: " ^ expsToString i.args ^ "})"
+  | IndexExpression i -> "(INDEXEXP {left: " ^ expToString i.left ^ " index: " ^ expToString i.index ^ "})"
 
   and expsToString = function
   | [] -> ""
