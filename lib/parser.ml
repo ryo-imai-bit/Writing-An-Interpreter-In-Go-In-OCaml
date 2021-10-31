@@ -94,6 +94,32 @@ module Parser = struct
       | (pr, None) -> (pr, None))
     else errorParse prs "expected LPAREN"
 
+  let parseFunctionParameters prs = let rec rpfp par fps = (match fps with
+  | Some plist -> if par.curToken.t_type = Token.IDENT
+    then (match par.peekToken.t_type with
+    | Token.RPAREN -> (match parseIdentifier par with
+      | (pr, Some exp) -> (nextToken pr, Some (plist@[exp]))
+      | (pr, None) -> (pr, None))
+    | Token.COMMA -> (match parseIdentifier par with
+      | (pr, Some exp) -> rpfp (nextToken pr |> nextToken) (Some (plist@[exp]))
+      | (pr, None) -> (pr, None))
+    | _ -> errorParse (nextToken par) "expected COMMA or RPAREN")
+    else errorParse par "expected IDENT"
+  | None -> (par, None))
+  in if prs.peekToken.t_type = Token.RPAREN
+    then (nextToken prs, Some [])
+    else rpfp (nextToken prs) (Some [])
+
+  let parseFunctionLiteral prs parseStatement = if prs.peekToken.t_type = Token.LPAREN
+    then match parseFunctionParameters (nextToken prs) with
+      | (pr, Some plist) -> if pr.peekToken.t_type = Token.LBRACE
+          then match parseBlockstatement (nextToken pr |> nextToken) parseStatement with
+            | (p, Some slist) -> (p, Some (Ast.FunctionLiteral {prms = plist; body = slist;}))
+            | (p, None) -> (p, None)
+          else errorParse pr "expected LBRACE"
+      | (pr, None) -> (pr, None)
+    else errorParse prs "expected LPAREN"
+
   let parsePrefixExpression par parseExpression parseStatement = (match par.curToken with
   | {literal = _; t_type = Token.INT} -> parseIntegerLiteral par
   | {literal = _; t_type = Token.IDENT} -> parseIdentifier par
@@ -101,16 +127,16 @@ module Parser = struct
   | {literal = _; t_type = Token.FALSE}
   | {literal = _; t_type = Token.TRUE} -> parseBooleanLiteral par
   | {literal = _; t_type = Token.IF} -> parseIfExpression par parseExpression parseStatement
+  | {literal = _; t_type = Token.FUNCTION} -> parseFunctionLiteral par parseStatement
   | {literal = _; t_type = Token.LPAREN} -> (match (parseExpression (nextToken par) lowest parseStatement) with
     | (pr, Some exp) -> if pr.peekToken.t_type = Token.RPAREN
       then (nextToken pr, Some exp)
       else errorParse pr "expected RPAREN"
     | (pr, None) -> (pr, None))
   | {literal; t_type = Token.BANG}
-  | {literal; t_type = Token.MINUS} -> (let (pr, exp) = (parseExpression (nextToken par) prefixPrecedence parseStatement)
-    in match exp with
-    | Some ex -> (pr, Some (Ast.PrefixExpression {op = literal; right = ex}))
-    | None -> (pr, None))
+  | {literal; t_type = Token.MINUS} -> (match parseExpression (nextToken par) prefixPrecedence parseStatement with
+    | (pr, Some ex) -> (pr, Some (Ast.PrefixExpression {op = literal; right = ex}))
+    | (pr, None) -> (pr, None))
   | _ -> errorParse par "No matching prefix parse")
 
   let parseInfixExpression par lexp parseExpression parseStatement = match par.curToken with
@@ -138,14 +164,13 @@ module Parser = struct
 
   let parseLetStatement prs parseStatement = match prs.curToken with
   | {literal; t_type = Token.IDENT} -> let pr = nextToken prs in (match pr.curToken with
-    | {literal = _; t_type = Token.ASSIGN} -> let (p, exp) = parseExpression (nextToken pr) lowest parseStatement
-      in (match exp with
-      | Some e -> let sp = if Token.isSemicolon p.peekToken then nextToken p else p
+    | {literal = _; t_type = Token.ASSIGN} -> (match parseExpression (nextToken pr) lowest parseStatement with
+      | (p, Some e) -> let sp = if Token.isSemicolon p.peekToken then nextToken p else p
           in (sp, Some (Ast.LetStatment {
               idt = Ast.Identifier literal;
               value = e
           }))
-      | None -> (p, None))
+      | (p, None) -> (p, None))
     | _  -> errorParse pr "expected ASSIGN")
   | _ -> errorParse prs "expectd IDENT"
 

@@ -63,8 +63,11 @@ let test_same_tok2 () = Alcotest.(check (list token_testable))
   ; Token.newToken Token.ASSIGN "="
   ; Token.newToken Token.IDENT "b"
   ; Token.newToken Token.FUNCTION "fn"
+  ; Token.newToken Token.LPAREN "("
   ; Token.newToken Token.IDENT "a"
+  ; Token.newToken Token.COMMA ","
   ; Token.newToken Token.IDENT "b"
+  ; Token.newToken Token.RPAREN ")"
   ; Token.newToken Token.LBRACE "{"
   ; Token.newToken Token.IDENT "a"
   ; Token.newToken Token.PLUS "+"
@@ -73,7 +76,7 @@ let test_same_tok2 () = Alcotest.(check (list token_testable))
   ; Token.newToken Token.EOF ""
   ]
   (To_test.lex "let a = b
-  fn a b {
+  fn (a, b) {
     a + b
   }")
 

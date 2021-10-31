@@ -53,7 +53,13 @@ let test_statements () = Alcotest.(check (list ast_testable))
     };
     };
   ]
-  (Lexer.newLexer "return hoge;let a = -1 + 1 * 5; !hogehoge + 12 * true; false; if (2 * 3 == hoge) { let hoge = 3; foo == hoge;} else {hoge}" |> To_test.ast)
+  (Lexer.newLexer "return hoge;
+    let a = -1 + 1 * 5;
+    !hogehoge + 12 * true;
+    false;
+    if (2 * 3 == hoge) { let hoge = 3; foo == hoge;} else {hoge}
+
+  " |> To_test.ast)
 
 let test_let_statements () = Alcotest.(check (list ast_testable))
   "same ast"
@@ -127,8 +133,25 @@ let test_prefix () = Alcotest.(check (list ast_testable))
         };
       };
     };
+    Ast.ExpressionStatement {exp = Ast.FunctionLiteral {
+      prms = [Ast.Identifier "x"; Ast.Identifier "y";];
+      body = Ast.BlockStatement {
+        stms = [
+          Ast.ExpressionStatement {
+            exp = Ast.InfixExpression {
+              op = "*";
+              left = Ast.Identifier "x";
+              right = Ast.Identifier "y";
+            };
+          };
+        ]}
+    }};
   ]
-  (Lexer.newLexer "-1; 1 * (2 - 1 + 3)" |> To_test.ast)
+  (Lexer.newLexer "
+    -1;
+    1 * (2 - 1 + 3)
+    fn (x, y) { x * y; }
+  " |> To_test.ast)
 
 let test_infix () = Alcotest.(check (list ast_testable))
   "same ast"
