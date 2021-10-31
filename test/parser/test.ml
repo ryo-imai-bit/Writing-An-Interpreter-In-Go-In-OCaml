@@ -6,10 +6,10 @@ include Lexer
 module To_test = struct
   let newparser lex = let le = Parser.newParser lex in le.peekToken
   let nextToken prs = Parser.nextToken prs
-  (* let ast lex = let (_, stm) = Parser.parseProgram (Parser.newParser lex) []
-    in stm *)
-  let ast lex = let (pr, stm) = Parser.parseProgram (Parser.newParser lex) []
-    in if pr.errors = [] then stm else raise (Failure (Parser.errorsToString pr.errors))
+  let ast lex = let (_, stm) = Parser.parseProgram (Parser.newParser lex) []
+    in stm
+  (* let ast lex = let (pr, stm) = Parser.parseProgram (Parser.newParser lex) []
+    in if pr.errors = [] then stm else raise (Failure (Parser.errorsToString pr.errors)) *)
 end
 
 let ast_testable = Alcotest.testable Ast.pp Ast.eq
@@ -52,13 +52,38 @@ let test_statements () = Alcotest.(check (list ast_testable))
       ]});
     };
     };
+    Ast.ExpressionStatement {
+      exp = Ast.ArrayLiteral {
+        elms = [
+          Ast.IntegerLiteral 1;
+          Ast.IntegerLiteral 3;
+          Ast.FunctionLiteral {
+            prms = [
+              Ast.Identifier "a";
+              Ast.Identifier "b";
+            ];
+            body = Ast.BlockStatement {
+              stms = [
+                Ast.ExpressionStatement {
+                  exp = Ast.InfixExpression {
+                    op = "*";
+                    left = Ast.IntegerLiteral 12;
+                    right = Ast.IntegerLiteral 3;
+                  }
+                };
+              ]
+            };
+          };
+        ]
+      };
+    };
   ]
   (Lexer.newLexer "return hoge;
     let a = -1 + 1 * 5;
     !hogehoge + 12 * true;
     false;
-    if (2 * 3 == hoge) { let hoge = 3; foo == hoge;} else {hoge}
-
+    if (2 * 3 == hoge) { let hoge = 3; foo == hoge;} else {hoge};
+    [1, 3, fn (a, b) { 12 * 3}]
   " |> To_test.ast)
 
 let test_let_statements () = Alcotest.(check (list ast_testable))
@@ -149,8 +174,8 @@ let test_prefix () = Alcotest.(check (list ast_testable))
   ]
   (Lexer.newLexer "
     -1;
-    1 * (2 - 1 + 3)
-    fn (x, y) { x * y; }
+    1 * (2 - 1 + 3);
+    fn (x, y) { x * y; };
   " |> To_test.ast)
 
 let test_infix () = Alcotest.(check (list ast_testable))

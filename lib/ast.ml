@@ -9,6 +9,7 @@ module Ast = struct
   | InfixExpression of {op: string; left: expression; right: expression;}
   | IfExpression of {cond: expression; cons: statement; alt: statement option;}
   | FunctionLiteral of {prms: expression list; body: statement}
+  | ArrayLiteral of {elms: expression list;}
 
   and statement =
   | LetStatment of {idt: expression; value: expression;}
@@ -33,10 +34,11 @@ module Ast = struct
     | None -> "" in "(IF {cond: " ^ expToString i.cond ^
     " cons: " ^ stmToString i.cons
     ^ alt ^ "})"
-  | FunctionLiteral i -> let rec rsts = function
-    | [] -> ""
-    | h::t -> "[ " ^ expToString h ^ " ]" ^ (rsts t)
-    in "(FN {prms: " ^ rsts i.prms ^ " body: " ^ stmToString i.body ^ "})"
+  | FunctionLiteral i -> "(FN {prms: " ^ expsToString i.prms ^ " body: " ^ stmToString i.body ^ "})"
+  | ArrayLiteral i -> expsToString i.elms
+  and expsToString = function
+  | [] -> ""
+  | h::t -> "[ " ^ expToString h ^ " ]" ^ (expsToString t)
 
   and stmToString = function
   | LetStatment i -> "LET:" ^ expToString i.idt ^ " " ^ expToString i.value

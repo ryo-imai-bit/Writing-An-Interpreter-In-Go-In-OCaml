@@ -120,6 +120,25 @@ module Parser = struct
       | (pr, None) -> (pr, None)
     else errorParse prs "expected LPAREN"
 
+  let parseExpressionList prs parseExpression parseStatement endt = let rec rpel par expl = (match expl with
+  | Some elist -> (match parseExpression par lowest parseStatement with
+    | (pr, Some exp) -> (match pr.peekToken.t_type with
+      | Token.COMMA -> rpel (nextToken pr |> nextToken) (Some (elist@[exp]))
+      | tok -> if tok = endt
+        then (nextToken pr, Some (elist@[exp]))
+        else errorParse pr "expected COMMA")
+    | (pr, None) -> (pr, None))
+  | None -> (par, None))
+  in if prs.peekToken.t_type = endt
+    then (nextToken prs, Some [])
+    else rpel (nextToken prs) (Some [])
+
+
+  let parseArrayLiteral prs parseExpression parseStatement endt = match parseExpressionList prs parseExpression parseStatement endt with
+  | (pr, Some elist) -> (pr, Some (Ast.ArrayLiteral {elms = elist}))
+  | (pr, None) -> (pr, None)
+
+
   let parsePrefixExpression par parseExpression parseStatement = (match par.curToken with
   | {literal = _; t_type = Token.INT} -> parseIntegerLiteral par
   | {literal = _; t_type = Token.IDENT} -> parseIdentifier par
@@ -128,6 +147,7 @@ module Parser = struct
   | {literal = _; t_type = Token.TRUE} -> parseBooleanLiteral par
   | {literal = _; t_type = Token.IF} -> parseIfExpression par parseExpression parseStatement
   | {literal = _; t_type = Token.FUNCTION} -> parseFunctionLiteral par parseStatement
+  | {literal = _; t_type = Token.LBRACKET} -> parseArrayLiteral par parseExpression parseStatement Token.RBRACKET
   | {literal = _; t_type = Token.LPAREN} -> (match (parseExpression (nextToken par) lowest parseStatement) with
     | (pr, Some exp) -> if pr.peekToken.t_type = Token.RPAREN
       then (nextToken pr, Some exp)
