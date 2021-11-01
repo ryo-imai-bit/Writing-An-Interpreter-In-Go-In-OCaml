@@ -2,12 +2,23 @@ module Evaluator = struct
 include Object
 include Ast
 
-let evalExpression exp env = match exp with
+let evalPrefixExpression op right = match op with
+| "!" -> (match right with
+  | Object.Boolean boolean -> Object.Boolean (Bool.not boolean)
+  | Object.Null -> Object.Boolean true
+  | _ -> Object.Boolean false)
+| "-" -> (match right with
+  | Object.Integer i -> (Object.Integer (- i))
+  | ob -> Object.Err ("unknown operator: -" ^ Object.objToString ob))
+| _ -> Object.Err ("unknow operator: " ^ op ^ Object.objToString right)
+
+let rec evalExpression exp env = match exp with
 | Ast.IntegerLiteral i -> (Object.Integer i, env)
 | Ast.StringLiteral i -> (Object.Strng i, env)
 | Ast.Identifier i -> (Object.Err i, env)
 | Ast.BooleanLiteral i -> (Object.Boolean i, env)
-| Ast.PrefixExpression _ ->(Object.Err "hoge", env)
+| Ast.PrefixExpression {op; right;} -> let (right, ev) = evalExpression right env
+  in (evalPrefixExpression op right, ev)
 | Ast.InfixExpression _ -> (Object.Err "hoge", env)
 | Ast.IfExpression _ -> (Object.Err "hoge", env)
 | Ast.FunctionLiteral i -> (Object.Func {prms = i.prms; body = i.body;}, env)

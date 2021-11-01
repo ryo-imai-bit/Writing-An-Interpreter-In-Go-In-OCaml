@@ -5,31 +5,63 @@ include Object
 include Evaluator
 
 module To_test = struct
-  let eval str = let prg = Parser.parseProgram (Parser.newParser (Lexer.newLexer str)) []
-  in Evaluator.evalProgram prg (Object.newEnv)
+  let evals strlst = let rec reval = function
+    | [] -> []
+    | h::t -> let prg = Parser.parseProgram (Parser.newParser (Lexer.newLexer h)) []
+    in let obj = Evaluator.evalProgram prg (Object.newEnv)
+    in obj::(reval t)
+  in reval strlst
 end
 
 let obj_testable = Alcotest.testable Object.pp Object.eq
 
-let test_exp_stms () = Alcotest.(check obj_testable)
+let test_exp_stms () = Alcotest.(check (list obj_testable))
   "same objs"
-  (Object.Integer 2)
-  (To_test.eval "1; 2")
+  [
+    Object.Integer 2;
+    Object.Boolean false;
+    Object.Strng "hoge";
+  ]
+  (To_test.evals ["1; 2"; "true;false"; "\"hoge\""])
 
-let test_int () = Alcotest.(check obj_testable)
+let test_prefix_int () = Alcotest.(check (list obj_testable))
   "same objs"
-  (Object.Integer 2)
-  (To_test.eval "1; 2")
+  [
+    Object.Integer (-2);
+    Object.Integer (0);
+  ]
+  (To_test.evals ["-2"; "-0";])
 
-let test_str () = Alcotest.(check obj_testable)
+let test_prefix_bool () = Alcotest.(check (list obj_testable))
   "same objs"
-  (Object.Strng "hogehoge")
-  (To_test.eval "\"hogehoge\"")
+  [
+    Object.Boolean true;
+    Object.Boolean false;
+    Object.Boolean false;
+    Object.Boolean false;
+  ]
+  (To_test.evals ["!false"; "!true"; "!12;"; "!\"hoge\""])
 
-let test_bool () = Alcotest.(check obj_testable)
+let test_int () = Alcotest.(check (list obj_testable))
   "same objs"
-  (Object.Boolean false)
-  (To_test.eval "true; false")
+  [Object.Integer 2]
+  (To_test.evals ["1; 2"])
+
+let test_str () = Alcotest.(check (list obj_testable))
+  "same objs"
+  [
+    Object.Strng "hogehoge";
+    Object.Strng "orau==";
+  ]
+  (To_test.evals ["\"hogehoge\""; "\"orau==\"";])
+
+let test_bool () = Alcotest.(check (list obj_testable))
+  "same objs"
+  [
+    Object.Boolean true;
+    Object.Boolean false;
+  ]
+  (To_test.evals ["true;"; "false"])
 
 (* Run it *)
 let () =
@@ -37,6 +69,8 @@ let () =
   run "evaluator" [
       "eval", [
           test_case "eval ExpressionStatements" `Slow test_exp_stms;
+          test_case "eval Prefix Integer" `Slow test_prefix_int;
+          test_case "eval Prefix Boolean" `Slow test_prefix_bool;
           test_case "eval Integer" `Slow test_int;
           test_case "eval String" `Slow test_str;
           test_case "eval Boolean" `Slow test_bool;
