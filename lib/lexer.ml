@@ -81,6 +81,8 @@ module Lexer = struct
     | '}' -> (readChar le, Token.newToken Token.RBRACE (Char.escaped le.ch))
     | '[' -> (readChar le, Token.newToken Token.LBRACKET (Char.escaped le.ch))
     | ']' -> (readChar le, Token.newToken Token.RBRACKET (Char.escaped le.ch))
+    | '<' -> (readChar le, Token.newToken Token.LT (Char.escaped le.ch))
+    | '>' -> (readChar le, Token.newToken Token.GT (Char.escaped le.ch))
     | '"' -> let (le, str) = (readChar le |> readString) in (le, Token.newToken Token.STRING str)
     | '\x00' -> (readChar le, Token.newToken Token.EOF "")
     | c -> if is_letter c

@@ -142,6 +142,11 @@ let test_expression_statements () = Alcotest.(check (list ast_testable))
     }};
     Ast.ExpressionStatement {exp = Ast.InfixExpression {
       op = "==";
+      left = Ast.InfixExpression {op = ">"; left = Ast.IntegerLiteral 1; right = Ast.IntegerLiteral 2;};
+      right = Ast.BooleanLiteral true;
+    }};
+    Ast.ExpressionStatement {exp = Ast.InfixExpression {
+      op = "==";
       left = Ast.InfixExpression {op = "<"; left = Ast.IntegerLiteral 1; right = Ast.IntegerLiteral 2;};
       right = Ast.BooleanLiteral true;
     }};
@@ -150,7 +155,7 @@ let test_expression_statements () = Alcotest.(check (list ast_testable))
   hogehoge * iu;
   100 * 12;
   123 * 21 == hoge;
-  1 < 2 == true;
+  1 > 2 == true;
   (1 < 2) == true;
   " |> To_test.ast)
 

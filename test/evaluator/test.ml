@@ -55,7 +55,7 @@ let test_infix_int () = Alcotest.(check (list obj_testable))
   "same objs"
   [
     Object.Boolean true;
-    Object.Boolean false;
+    Object.Boolean true;
     Object.Boolean false;
     Object.Boolean true;
     Object.Integer 96;
@@ -80,7 +80,7 @@ let test_infix_str () = Alcotest.(check (list obj_testable))
     Object.Strng "brad pitt";
     Object.Strng "anata daredesuka";
   ]
-  (To_test.evals ["\"brad\" + \" \" + \"pit\""; "\"anata \" + \"daredesuka\"";])
+  (To_test.evals ["\"brad\" + \" \" + \"pitt\""; "\"anata \" + \"daredesuka\"";])
 
 let test_int () = Alcotest.(check (list obj_testable))
   "same objs"
