@@ -42,6 +42,46 @@ let test_prefix_bool () = Alcotest.(check (list obj_testable))
   ]
   (To_test.evals ["!false"; "!true"; "!12;"; "!\"hoge\""])
 
+let test_infix () = Alcotest.(check (list obj_testable))
+  "same objs"
+  [
+    Object.Boolean true;
+    Object.Boolean false;
+  ]
+  (To_test.evals ["(1 < 2) == true;"; "(33 < 0) != false";])
+
+
+let test_infix_int () = Alcotest.(check (list obj_testable))
+  "same objs"
+  [
+    Object.Boolean true;
+    Object.Boolean false;
+    Object.Boolean false;
+    Object.Boolean true;
+    Object.Integer 96;
+    Object.Integer 5;
+    Object.Integer (-71);
+    Object.Integer (-19);
+  ]
+  (To_test.evals [
+    "-122 == -122";
+    "-33 != 12";
+    "-12 > 3";
+    "-333 < 500";
+    "12 * 80 / 10";
+    "23 / 4 - 0";
+    "-23 - 4 * 12";
+    "-23 + 4";
+  ])
+
+let test_infix_str () = Alcotest.(check (list obj_testable))
+  "same objs"
+  [
+    Object.Strng "brad pitt";
+    Object.Strng "anata daredesuka";
+  ]
+  (To_test.evals ["\"brad\" + \" \" + \"pit\""; "\"anata \" + \"daredesuka\"";])
+
 let test_int () = Alcotest.(check (list obj_testable))
   "same objs"
   [Object.Integer 2]
@@ -71,6 +111,9 @@ let () =
           test_case "eval ExpressionStatements" `Slow test_exp_stms;
           test_case "eval Prefix Integer" `Slow test_prefix_int;
           test_case "eval Prefix Boolean" `Slow test_prefix_bool;
+          test_case "eval Infix" `Slow test_infix;
+          test_case "eval Infix Integer" `Slow test_infix_int;
+          test_case "eval Infix String" `Slow test_infix_str;
           test_case "eval Integer" `Slow test_int;
           test_case "eval String" `Slow test_str;
           test_case "eval Boolean" `Slow test_bool;

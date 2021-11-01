@@ -15,6 +15,19 @@ include Ast
 
   let newEnv = []
 
+  let typeEq a b = match (a, b) with
+  | Integer _, Integer _ -> true
+  | Boolean _, Boolean _ -> true
+  | Strng _, Strng _ -> true
+  | ReturnValue _, ReturnValue _ -> true
+  | Func _, Func _ -> true
+  | Builtin _, Builtin _ -> true
+  | Arry _, Arry _ -> true
+  | Empty, Empty -> true
+  | Null, Null -> true
+  | Err _, Err _ -> true
+  | _ -> false
+
   let eq a b = match (a, b) with
   | Integer a, Integer b -> a = b
   | a, b -> a = b

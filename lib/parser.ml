@@ -57,6 +57,8 @@ module Parser = struct
 
   let peekPrecedence prs = precedence prs.peekToken.t_type
 
+  (* parseし終わった時はそのトークンの最後にいる　 *)
+
   let parseIntegerLiteral prs = (prs, Some (Ast.IntegerLiteral (int_of_string prs.curToken.literal)))
 
   let parseIdentifier prs = (prs, Some (Ast.Identifier prs.curToken.literal))
@@ -186,9 +188,9 @@ module Parser = struct
 
   let rec parseExpression prs pcd parseStatement = match (parsePrefixExpression prs parseExpression parseStatement) with
   | (ps, Some le) ->
-    let rec rParseInfix pr pcd lexp = (if pcd < (peekPrecedence pr)
+    let rec rParseInfix pr prcd lexp = (if prcd < (peekPrecedence pr)
       then (match (parseInfixExpression (nextToken pr) lexp parseExpression parseStatement) with
-      | (pars, Some re) -> rParseInfix pars pcd re
+      | (pars, Some re) -> rParseInfix pars prcd re
       | (pars, None) -> (pars, None))
       else (pr, Some lexp))
     in rParseInfix ps pcd le
@@ -231,10 +233,10 @@ module Parser = struct
     | (ps, Some stm) -> rpp (nextToken ps) (prg@[stm])
     | (ps, None) -> (ps, prg)
   in match rpp prs lst with
-  | (ps, prg) -> if ps.errors = []
+  (* | (ps, prg) -> if ps.errors = []
     then {statements = prg;}
-    else raise (Failure (errorsToString ps.errors))
-  (* | (_, prg) -> {statements = prg;} *)
+    else raise (Failure (errorsToString ps.errors)) *)
+  | (_, prg) -> {statements = prg;}
 
   let eq prsa prsb = Token.eq prsa.curToken prsb.curToken && Token.eq prsa.peekToken prsb.peekToken
 
