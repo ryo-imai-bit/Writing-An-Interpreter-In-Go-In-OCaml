@@ -225,12 +225,16 @@ module Parser = struct
   | {literal = _; t_type = Token.RETURN} -> parseReturnStatement (nextToken prs) parseStatement
   | _ -> parseExpressionStatement prs parseStatement
 
-  let parseProgram prs lst = let rec rpp prs prg = match prs.curToken with
+  let parseProgram prs lst : Ast.program = let rec rpp prs prg = match prs.curToken with
   | {literal = _; t_type = Token.EOF} -> (prs, prg)
   | _ -> match parseStatement prs with
     | (ps, Some stm) -> rpp (nextToken ps) (prg@[stm])
     | (ps, None) -> (ps, prg)
-  in rpp prs lst
+  in match rpp prs lst with
+  | (ps, prg) -> if ps.errors = []
+    then {statements = prg;}
+    else raise (Failure (errorsToString ps.errors))
+  (* | (_, prg) -> {statements = prg;} *)
 
   let eq prsa prsb = Token.eq prsa.curToken prsb.curToken && Token.eq prsa.peekToken prsb.peekToken
 

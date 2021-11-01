@@ -3,16 +3,19 @@ include Ast
 
   type obj =
   | Integer of int
-
-  let eval _ _ = [Integer 1]
+  | Empty
+  | Error of string
 
   let newEnv = []
 
   let eq a b = match (a, b) with
   | Integer a, Integer b -> a = b
+  | a, b -> a = b
 
   let objToString = function
   | Integer i -> string_of_int i
+  | Empty -> "empty"
+  | Error i -> i
 
   let pp ppf ob = Fmt.pf ppf "Object = %s" (objToString ob)
 

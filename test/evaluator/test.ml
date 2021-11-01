@@ -2,21 +2,19 @@ open Interpreter
 include Parser
 include Ast
 include Object
+include Evaluator
 
 module To_test = struct
-  let eval str = let stms = let (pr, stm) = Parser.parseProgram (Parser.newParser (Lexer.newLexer str)) []
-    in if pr.errors = [] then stm else raise (Failure (Parser.errorsToString pr.errors))
-  in Object.eval stms (Object.newEnv)
+  let eval str = let prg = Parser.parseProgram (Parser.newParser (Lexer.newLexer str)) []
+  in Evaluator.evalProgram prg (Object.newEnv)
 end
 
 let obj_testable = Alcotest.testable Object.pp Object.eq
 
-let test_exp_stm () = Alcotest.(check (list obj_testable))
+let test_exp_stm () = Alcotest.(check obj_testable)
   "same objs"
-  [
-    Object.Integer 1
-  ]
-  (To_test.eval "1;")
+  (Object.Integer 2)
+  (To_test.eval "1; 2;")
 
 (* Run it *)
 let () =

@@ -1,6 +1,10 @@
 module Ast = struct
   include Token
-  type expression =
+  type node =
+  | Expression of expression
+  | Statement of statement
+
+  and expression =
   | IntegerLiteral of int
   | StringLiteral of string
   | Identifier of string
