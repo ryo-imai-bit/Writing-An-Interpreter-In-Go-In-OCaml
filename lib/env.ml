@@ -11,6 +11,11 @@ module Env = struct
     outer = None;
   }
 
+  let newEnclosedEnv env = {
+    store = Hashtbl.create 100;
+    outer = Some env;
+  }
+
   let rec get env key = if Hashtbl.mem env.store key
     then Some (Hashtbl.find env.store key)
     else (match env.outer with

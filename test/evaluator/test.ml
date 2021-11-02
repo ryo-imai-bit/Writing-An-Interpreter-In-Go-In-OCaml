@@ -169,6 +169,19 @@ let test_func_lit () = Alcotest.(check (list obj_testable))
   ]
   (To_test.evals ["fn (a, b) {a * b}"])
 
+let test_call_exp () = Alcotest.(check (list obj_testable))
+  "same objs"
+  [
+    Object.Integer 3;
+    Object.Strng "hogehoge";
+    Object.Strng "hoge";
+  ]
+  (To_test.evals [
+    "fn(a,b) {a+b}(1,2)";
+    "let a = \"hoge\"; fn (b, c) {let d = b + c; d}(\"hoge\", \"hoge\");";
+    "let a = \"hoge\"; fn (b, c) {let a = b + c; a}(1, 3); a;";
+  ])
+
 (* Run it *)
 let () =
   let open Alcotest in
@@ -187,5 +200,6 @@ let () =
           test_case "eval String" `Slow test_str;
           test_case "eval Boolean" `Slow test_bool;
           test_case "eval FunctionLiteral" `Slow test_func_lit;
+          test_case "eval CallExpression" `Slow test_call_exp;
         ];
     ]
