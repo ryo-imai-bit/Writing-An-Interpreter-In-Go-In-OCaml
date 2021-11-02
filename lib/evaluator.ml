@@ -31,9 +31,9 @@ let evalStringInfixExpression op left right = match op with
 | _ -> Object.Err (Printf.sprintf "unknown operator: %s %s %s" op left right)
 
 let evalInfixExpression op left right = match (left, right) with
-| (Object.Integer l, Object.Integer r) -> evalIntegerInfixExpression op l r
-| (Object.Strng l, Object.Strng r) -> evalStringInfixExpression op l r
-| (l, r) -> if Object.typeEq l r
+| Object.Integer l, Object.Integer r -> evalIntegerInfixExpression op l r
+| Object.Strng l, Object.Strng r -> evalStringInfixExpression op l r
+| l, r -> if Object.typeEq l r
   then (match op with
   | "==" -> Object.Boolean (Object.eq left right)
   | "!=" -> Object.Boolean (Object.eq left right |> Bool.not)
@@ -42,8 +42,8 @@ let evalInfixExpression op left right = match (left, right) with
 
 let extendFunctionEnv prms args env = let nenv = Env.newEnclosedEnv env
 in let rec refe pms ags = match pms, ags with
-  | ([], []) -> ()
-  | ((Ast.Identifier idt)::it, obj::ot) -> let _ = Env.set nenv idt obj in refe it ot
+  | [], [] -> ()
+  | (Ast.Identifier idt)::it, obj::ot -> let _ = Env.set nenv idt obj in refe it ot
   | _, _ -> raise (Failure "err env")
 in refe prms args; nenv
 
@@ -61,7 +61,6 @@ let rec evalExpression exp env = match exp with
   in (evalInfixExpression op l r, e)
 | Ast.IfExpression i -> evalIfExpression i.cond i.cons i.alt env
 | Ast.FunctionLiteral i -> (Object.Func {prms = i.prms; body = i.body;}, env)
-(* | Ast.CallExpression _ -> (Object.Err "hoge", env) *)
 | Ast.CallExpression i -> (match evalExpression i.fn env with
   | Object.Err i, ev -> (Object.Err i, ev)
   | Object.Func fn, ev -> (match evalExpressions i.args ev with
@@ -70,12 +69,20 @@ let rec evalExpression exp env = match exp with
       | Ast.BlockStatement stm -> (applyFunction fn.prms stm.stms args e, e)
       | bd -> (Object.Err ("expected BlockStatement got " ^ Ast.stmToString bd), e)))
   | exp, ev -> (Object.Err (Object.objToString exp), ev))
-| Ast.ArrayLiteral _ -> (Object.Err "hoge", env)
-| Ast.IndexExpression _ -> (Object.Err "hoge", env)
+| Ast.ArrayLiteral i -> (match evalExpressions i.elms env with
+  | [Object.Err i], e -> (Object.Err i, e)
+  | objs, e -> (Object.Arry objs, e))
+| Ast.IndexExpression i -> (match evalExpression i.left env with
+  | Object.Arry arr, ev -> (match evalExpression i.index ev with
+    | Object.Integer it, e -> (match List.nth_opt arr it with
+      | Some obj -> (obj, e)
+      | None -> (Object.Err "index out of range", e))
+    | obj, e ->  (Object.Err (Printf.sprintf "index operator not supported: %s" (Object.objToString obj)), e))
+  | obj, ev -> (Object.Err (Printf.sprintf "index operator not supported: %s" (Object.objToString obj)), ev))
 
 and evalIfExpression cond cons alt env = match evalExpression cond env with
-  | (Object.Err i, ev) -> (Object.Err i, ev)
-  | (obj, ev) -> if isTruthy obj
+  | Object.Err i, ev -> (Object.Err i, ev)
+  | obj, ev -> if isTruthy obj
     then match cons with
       | Ast.BlockStatement stm -> evalBlockStatement stm.stms ev
       | _ -> (Object.Err "expected BlockStatement", ev)
@@ -87,16 +94,16 @@ and evalIfExpression cond cons alt env = match evalExpression cond env with
 and evalExpressions exps env = let rec ree exps ev = match exps with
   | [] -> ([], ev)
   | h::t -> match evalExpression h ev with
-    | (Object.Err i, _) -> raise (Failure i)
-    | (obj, e) -> let (ob, envr) = ree t e in (obj::ob, envr)
+    | Object.Err i, _ -> raise (Failure i)
+    | obj, e -> let (ob, envr) = ree t e in (obj::ob, envr)
 in try ree exps env with
 | Failure i -> ([Object.Err i], env)
 | _ -> ([Object.Err "unknown error"], env)
 
 and applyFunction prms body args env = let nenv = extendFunctionEnv prms args env in
 match evalBlockStatement body nenv with
-| (Object.ReturnValue i, _) -> i
-| (obj, _) -> obj
+| Object.ReturnValue i, _ -> i
+| obj, _ -> obj
 
 and evalStatement stm env = match stm with
 | Ast.ExpressionStatement i -> evalExpression i.exp env
@@ -108,32 +115,32 @@ and evalBlockStatement (blstm: Ast.statement list) env = let rec rebs slist ev =
   | [] -> (Object.Empty, ev)
   | h::[] -> evalStatement h ev
   | h::t -> match evalStatement h ev with
-    | (Object.Err i, e) -> (Object.Err i, e)
-    | (Object.ReturnValue i, e) -> (i, e)
-    | (_, e) -> rebs t e
+    | Object.Err i, e -> (Object.Err i, e)
+    | Object.ReturnValue i, e -> (i, e)
+    | _, e -> rebs t e
 in match rebs blstm env with
-| (ob, e) -> (ob, e)
+| ob, e -> (ob, e)
 
 and evalReturnStatemen exp env = (match evalExpression exp env with
-  | (Object.Err i, ev) -> (Object.Err i, ev)
-  | (obj, ev) -> (Object.ReturnValue obj, ev))
+  | Object.Err i, ev -> (Object.Err i, ev)
+  | obj, ev -> (Object.ReturnValue obj, ev))
 
 and evalLetStatement idt value env = match idt with
   | Ast.Identifier ident -> (match evalExpression value env with
-    | (Object.Err i, ev) -> (Object.Err i, ev)
-    | (obj, ev) -> (Env.set ev ident obj, ev))
+    | Object.Err i, ev -> (Object.Err i, ev)
+    | obj, ev -> (Env.set ev ident obj, ev))
   | node -> (Object.Err ("expected IDENTIFIER got " ^ (Ast.expToString node)), env)
 
 let evalProgram (program:Ast.program) env = let rec revs slist ev = match slist with
   | [] -> (Object.Empty, ev)
   | h::[] -> (match evalStatement h ev with
-    | (Object.ReturnValue i, e) -> (i, e)
-    | (obj, e) -> (obj, e))
+    | Object.ReturnValue i, e -> (i, e)
+    | obj, e -> (obj, e))
   | h::t -> match evalStatement h ev with
-    | (Object.ReturnValue i, e) -> (i, e)
-    | (Object.Err i, e) -> (Object.Err i, e)
-    | (_, e) -> revs t e
+    | Object.ReturnValue i, e -> (i, e)
+    | Object.Err i, e -> (Object.Err i, e)
+    | _, e -> revs t e
 in match revs program.statements env with
-| (ob, _) -> ob
+| ob, _ -> ob
 
 end

@@ -16,6 +16,22 @@ end
 
 let obj_testable = Alcotest.testable Object.pp Object.eq
 
+let test_fibonacci () = Alcotest.(check (list obj_testable))
+  "same objs"
+  [
+    Object.Integer 55;
+  ]
+  (To_test.evals [
+    "let fib = fn (a) {
+      if (a == 0) {return 0}
+      else {
+        if (a == 1) { return 1 }
+        else { return fib (a-1) + fib (a-2) }
+      }
+    };
+    fib (10)";
+  ])
+
 let test_exp_stms () = Alcotest.(check (list obj_testable))
   "same objs"
   [
@@ -182,11 +198,61 @@ let test_call_exp () = Alcotest.(check (list obj_testable))
     "let a = \"hoge\"; fn (b, c) {let a = b + c; a}(1, 3); a;";
   ])
 
+let test_array_lit () = Alcotest.(check (list obj_testable))
+  "same objs"
+  [
+    Object.Arry [
+      Object.Integer 1;
+      Object.Integer 2
+    ];
+    Object.Arry [
+      Object.Strng "hogehoge";
+      Object.Boolean true;
+      Object.Strng "hoge";
+    ];
+    Object.Arry [
+      Object.Arry [
+        Object.Strng "hogehoge";
+        Object.Boolean true;
+        Object.Strng "hoge";
+      ];
+      Object.Integer 1;
+    ];
+  ]
+  (To_test.evals [
+    "[1, 2];";
+    "[\"hogehoge\", true, \"hoge\"]";
+    "[[\"hogehoge\", true, \"hoge\"], 1]";
+  ])
+
+let test_ind_exp () = Alcotest.(check (list obj_testable))
+  "same objs"
+  [
+    Object.Integer 2;
+    Object.Arry [
+      Object.Strng "hogehoge";
+      Object.Boolean true;
+      Object.Strng "hoge";
+    ];
+    Object.Arry [
+      Object.Integer 1;
+      Object.Strng "hoge";
+      Object.Integer 1;
+    ];
+  ]
+  (To_test.evals [
+    "[1, 2][1];";
+    "let a = [\"hogehoge\", true, \"hoge\"]; let b = [a]; b[0]";
+    "let a = fn (a, b) {[ [a, b, 1] ]}; a(1, \"hoge\")[0]";
+  ])
+
+
 (* Run it *)
 let () =
   let open Alcotest in
   run "evaluator" [
       "eval", [
+          test_case "eval Fibonacci" `Slow test_fibonacci;
           test_case "eval ExpressionStatements" `Slow test_exp_stms;
           test_case "eval ReturnStatements" `Slow test_ret_stms;
           test_case "eval LetStatements" `Slow test_let_stms;
@@ -201,5 +267,7 @@ let () =
           test_case "eval Boolean" `Slow test_bool;
           test_case "eval FunctionLiteral" `Slow test_func_lit;
           test_case "eval CallExpression" `Slow test_call_exp;
+          test_case "eval ArrayLiteral" `Slow test_array_lit;
+          test_case "eval IndexExpression" `Slow test_ind_exp;
         ];
     ]
