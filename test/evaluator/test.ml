@@ -3,12 +3,13 @@ include Parser
 include Ast
 include Object
 include Evaluator
+include Env
 
 module To_test = struct
   let evals strlst = let rec reval = function
     | [] -> []
     | h::t -> let prg = Parser.parseProgram (Parser.newParser (Lexer.newLexer h)) []
-    in let obj = Evaluator.evalProgram prg (Object.newEnv)
+    in let obj = Evaluator.evalProgram prg (Env.newEnv)
     in obj::(reval t)
   in reval strlst
 end
@@ -37,6 +38,14 @@ let test_ret_stms () = Alcotest.(check (list obj_testable))
     Object.Strng "hogehoge";
   ]
   (To_test.evals ["return -2 * 12 - 3"; "12; return \"hogehoge\"; -123 * 1";])
+
+let test_let_stms () = Alcotest.(check (list obj_testable))
+  "same objs"
+  [
+    Object.Integer (-27);
+    Object.Strng "hogehoge";
+  ]
+  (To_test.evals ["let a = -2 * 12 - 3; a"; "let a = \"hogehoge\"; -123 * 1; let b = a; b;";])
 
 let test_prefix_int () = Alcotest.(check (list obj_testable))
   "same objs"
@@ -167,6 +176,7 @@ let () =
       "eval", [
           test_case "eval ExpressionStatements" `Slow test_exp_stms;
           test_case "eval ReturnStatements" `Slow test_ret_stms;
+          test_case "eval LetStatements" `Slow test_let_stms;
           test_case "eval Prefix Integer" `Slow test_prefix_int;
           test_case "eval Prefix Boolean" `Slow test_prefix_bool;
           test_case "eval Infix" `Slow test_infix;

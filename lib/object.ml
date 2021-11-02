@@ -13,8 +13,6 @@ include Ast
   | Null
   | Err of string
 
-  let newEnv = []
-
   let typeEq a b = match (a, b) with
   | Integer _, Integer _ -> true
   | Boolean _, Boolean _ -> true

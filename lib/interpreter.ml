@@ -4,3 +4,4 @@ module Ast = Ast.Ast
 module Parser = Parser.Parser
 module Evaluator = Evaluator.Evaluator
 module Object = Object.Object
+module Env = Env.Env
