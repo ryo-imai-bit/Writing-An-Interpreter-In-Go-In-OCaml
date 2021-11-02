@@ -21,8 +21,14 @@ let test_exp_stms () = Alcotest.(check (list obj_testable))
     Object.Integer 2;
     Object.Boolean false;
     Object.Strng "hoge";
+    Object.Integer (-1);
   ]
-  (To_test.evals ["1; 2"; "true;false"; "\"hoge\""])
+  (To_test.evals [
+    "1; 2";
+    "true;false";
+    "\"hoge\"";
+    "if (!false) { 1 * (2 - 3) / 1 } else { 12 - 3 }";
+  ])
 
 let test_prefix_int () = Alcotest.(check (list obj_testable))
   "same objs"
@@ -40,7 +46,12 @@ let test_prefix_bool () = Alcotest.(check (list obj_testable))
     Object.Boolean false;
     Object.Boolean false;
   ]
-  (To_test.evals ["!false"; "!true"; "!12;"; "!\"hoge\""])
+  (To_test.evals [
+    "!false";
+    "!true";
+    "!12;";
+    "!\"hoge\""
+  ])
 
 let test_infix () = Alcotest.(check (list obj_testable))
   "same objs"
@@ -48,7 +59,10 @@ let test_infix () = Alcotest.(check (list obj_testable))
     Object.Boolean true;
     Object.Boolean false;
   ]
-  (To_test.evals ["(1 < 2) == true;"; "(33 < 0) != false";])
+  (To_test.evals [
+    "(1 < 2) == true;";
+    "(33 < 0) != false";
+  ])
 
 
 let test_infix_int () = Alcotest.(check (list obj_testable))
@@ -82,6 +96,21 @@ let test_infix_str () = Alcotest.(check (list obj_testable))
   ]
   (To_test.evals ["\"brad\" + \" \" + \"pitt\""; "\"anata \" + \"daredesuka\"";])
 
+let test_if_exp () = Alcotest.(check (list obj_testable))
+  "same objs"
+  [
+    Object.Integer 20;
+    Object.Strng "hoge";
+    Object.Integer 3;
+    Object.Empty;
+  ]
+  (To_test.evals [
+    "if (true) { 32 - 12; }";
+    "if (!true) { 33 / 3; } else { \"hoge\" }";
+    "if (12) { 2; 3; }";
+    "if (true) {}";
+  ])
+
 let test_int () = Alcotest.(check (list obj_testable))
   "same objs"
   [Object.Integer 2]
@@ -114,6 +143,7 @@ let () =
           test_case "eval Infix" `Slow test_infix;
           test_case "eval Infix Integer" `Slow test_infix_int;
           test_case "eval Infix String" `Slow test_infix_str;
+          test_case "eval If Expression" `Slow test_if_exp;
           test_case "eval Integer" `Slow test_int;
           test_case "eval String" `Slow test_str;
           test_case "eval Boolean" `Slow test_bool;

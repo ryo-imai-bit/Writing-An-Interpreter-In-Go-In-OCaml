@@ -2,11 +2,13 @@ module Evaluator = struct
 include Object
 include Ast
 
+let isTruthy = function
+| Object.Boolean boolean -> boolean
+| Object.Null -> false
+| _ -> true
+
 let evalPrefixExpression op right = match op with
-| "!" -> (match right with
-  | Object.Boolean boolean -> Object.Boolean (Bool.not boolean)
-  | Object.Null -> Object.Boolean true
-  | _ -> Object.Boolean false)
+| "!" -> let b = isTruthy right in Object.Boolean (Bool.not b)
 | "-" -> (match right with
   | Object.Integer i -> (Object.Integer (- i))
   | ob -> Object.Err ("unknown operator: -" ^ Object.objToString ob))
@@ -48,17 +50,35 @@ let rec evalExpression exp env = match exp with
 | Ast.InfixExpression {op; left; right;} -> let (l, ev) = evalExpression left env
   in let (r, e) = evalExpression right ev
   in (evalInfixExpression op l r, e)
-| Ast.IfExpression _ -> (Object.Err "hoge", env)
+| Ast.IfExpression i -> (match evalExpression i.cond env with
+  | (Object.Err i, ev) -> (Object.Err i, ev)
+  | (obj, ev) -> if isTruthy obj
+    then match i.cons with
+      | Ast.BlockStatement stm -> evalBlockStatement stm.stms ev
+      | _ -> (Object.Err "expected BlockStatement", ev)
+    else (match i.alt with
+      | Some (Ast.BlockStatement i) -> evalBlockStatement i.stms ev
+      | Some _ -> (Object.Err "expected BlockStatement", ev)
+      | None -> (Object.Null, ev)))
 | Ast.FunctionLiteral i -> (Object.Func {prms = i.prms; body = i.body;}, env)
 | Ast.ArrayLiteral _ -> (Object.Err "hoge", env)
 | Ast.CallExpression _ -> (Object.Err "hoge", env)
 | Ast.IndexExpression _ -> (Object.Err "hoge", env)
 
-let evalStatement stm env = match stm with
+and evalStatement stm env = match stm with
 | Ast.ExpressionStatement i -> evalExpression i.exp env
+| Ast.BlockStatement i -> evalBlockStatement i.stms env
 | Ast.ReturnStatement _ -> (Object.Err "ret", env)
 | Ast.LetStatment _ -> (Object.Err "let", env)
-| Ast.BlockStatement _ -> (Object.Err "bl", env)
+
+and evalBlockStatement (blstm: Ast.statement list) env = let rec rebs slist ev = match slist with
+  | [] -> (Object.Empty, ev)
+  | h::[] -> evalStatement h ev
+  | h::t -> match evalStatement h ev with
+    | (Object.Err i, e) -> (Object.Err i, e)
+    | (_, e) -> rebs t e
+in match rebs blstm env with
+| (ob, e) -> (ob, e)
 
 let evalProgram (program:Ast.program) env = let rec revs slist ev = match slist with
   | [] -> (Object.Empty, ev)
