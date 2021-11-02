@@ -52,7 +52,7 @@ let rec evalExpression exp env = match exp with
 | Ast.StringLiteral i -> (Object.Strng i, env)
 | Ast.Identifier i -> (match Env.get env i with
   | Some v -> (v, env)
-  | None -> (Object.Err ("unbound identifier" ^ i), env))
+  | None -> (Object.Err ("unbound identifier " ^ i), env))
 | Ast.BooleanLiteral i -> (Object.Boolean i, env)
 | Ast.PrefixExpression {op; right;} -> let (r, ev) = evalExpression right env
   in (evalPrefixExpression op r, ev)
@@ -64,7 +64,7 @@ let rec evalExpression exp env = match exp with
 (* | Ast.CallExpression _ -> (Object.Err "hoge", env) *)
 | Ast.CallExpression i -> (match evalExpression i.fn env with
   | Object.Err i, ev -> (Object.Err i, ev)
-  | Object.Func fn, ev -> (match evalExpressions fn.prms ev with
+  | Object.Func fn, ev -> (match evalExpressions i.args ev with
     | [Object.Err i], e -> (Object.Err i, e)
     | args, e ->  (match fn.body with
       | Ast.BlockStatement stm -> (applyFunction fn.prms stm.stms args e, e)
