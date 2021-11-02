@@ -30,6 +30,14 @@ let test_exp_stms () = Alcotest.(check (list obj_testable))
     "if (!false) { 1 * (2 - 3) / 1 } else { 12 - 3 }";
   ])
 
+let test_ret_stms () = Alcotest.(check (list obj_testable))
+  "same objs"
+  [
+    Object.Integer (-27);
+    Object.Strng "hogehoge";
+  ]
+  (To_test.evals ["return -2 * 12 - 3"; "12; return \"hogehoge\"; -123 * 1";])
+
 let test_prefix_int () = Alcotest.(check (list obj_testable))
   "same objs"
   [
@@ -132,12 +140,33 @@ let test_bool () = Alcotest.(check (list obj_testable))
   ]
   (To_test.evals ["true;"; "false"])
 
+let test_func_lit () = Alcotest.(check (list obj_testable))
+  "same objs"
+  [
+    Object.Func {
+      prms = [Ast.Identifier "a"; Ast.Identifier "b"];
+      body = Ast.BlockStatement {
+        stms = [
+          Ast.ExpressionStatement {
+            exp = Ast.InfixExpression {
+              op = "*";
+              left = Ast.Identifier "a";
+              right = Ast.Identifier "b";
+            }
+          }
+        ]
+      }
+    };
+  ]
+  (To_test.evals ["fn (a, b) {a * b}"])
+
 (* Run it *)
 let () =
   let open Alcotest in
   run "evaluator" [
       "eval", [
           test_case "eval ExpressionStatements" `Slow test_exp_stms;
+          test_case "eval ReturnStatements" `Slow test_ret_stms;
           test_case "eval Prefix Integer" `Slow test_prefix_int;
           test_case "eval Prefix Boolean" `Slow test_prefix_bool;
           test_case "eval Infix" `Slow test_infix;
@@ -147,5 +176,6 @@ let () =
           test_case "eval Integer" `Slow test_int;
           test_case "eval String" `Slow test_str;
           test_case "eval Boolean" `Slow test_bool;
+          test_case "eval FunctionLiteral" `Slow test_func_lit;
         ];
     ]

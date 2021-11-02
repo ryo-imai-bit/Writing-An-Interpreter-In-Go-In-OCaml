@@ -68,7 +68,7 @@ let rec evalExpression exp env = match exp with
 and evalStatement stm env = match stm with
 | Ast.ExpressionStatement i -> evalExpression i.exp env
 | Ast.BlockStatement i -> evalBlockStatement i.stms env
-| Ast.ReturnStatement _ -> (Object.Err "ret", env)
+| Ast.ReturnStatement i -> evalReturnStatemen i.value env
 | Ast.LetStatment _ -> (Object.Err "let", env)
 
 and evalBlockStatement (blstm: Ast.statement list) env = let rec rebs slist ev = match slist with
@@ -76,14 +76,22 @@ and evalBlockStatement (blstm: Ast.statement list) env = let rec rebs slist ev =
   | h::[] -> evalStatement h ev
   | h::t -> match evalStatement h ev with
     | (Object.Err i, e) -> (Object.Err i, e)
+    | (Object.ReturnValue i, e) -> (i, e)
     | (_, e) -> rebs t e
 in match rebs blstm env with
 | (ob, e) -> (ob, e)
 
+and evalReturnStatemen exp env = (match evalExpression exp env with
+  | (Object.Err i, ev) -> (Object.Err i, ev)
+  | (obj, ev) -> (Object.ReturnValue obj, ev))
+
 let evalProgram (program:Ast.program) env = let rec revs slist ev = match slist with
   | [] -> (Object.Empty, ev)
-  | h::[] -> evalStatement h ev
+  | h::[] -> (match evalStatement h ev with
+    | (Object.ReturnValue i, e) -> (i, e)
+    | (obj, e) -> (obj, e))
   | h::t -> match evalStatement h ev with
+    | (Object.ReturnValue i, e) -> (i, e)
     | (Object.Err i, e) -> (Object.Err i, e)
     | (_, e) -> revs t e
 in match revs program.statements env with
