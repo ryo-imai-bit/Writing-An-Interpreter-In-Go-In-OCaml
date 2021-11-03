@@ -1,6 +1,6 @@
-# InterpreterInGoInOCaml
+# Writing-An-Interpreter-In-Go-In-OCaml
 
-implementation of [InterpreterInGo](https://www.oreilly.co.jp/books/9784873118222/) in **OCaml**
+implementation of [Writing An Interpreter In Go](https://interpreterbook.com/) in **OCaml**
 
 ## todo
 
