@@ -7,7 +7,7 @@ include Ast
   | Strng of string
   | ReturnValue of obj
   | Func of {prms: Ast.expression list; body: Ast.statement}
-  | Builtin of (obj list -> obj)
+  | Builtin of (obj list -> obj option)
   | Arry of obj list
   | Empty
   | Null

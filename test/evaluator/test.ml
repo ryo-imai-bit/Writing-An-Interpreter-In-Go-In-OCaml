@@ -246,6 +246,45 @@ let test_ind_exp () = Alcotest.(check (list obj_testable))
     "let a = fn (a, b) {[ [a, b, 1] ]}; a(1, \"hoge\")[0]";
   ])
 
+let test_builtin () = Alcotest.(check (list obj_testable))
+  "same objs"
+  [
+    Object.Integer 2;
+    Object.Integer 3;
+    Object.Func {
+      prms = [Ast.Identifier "a"; Ast.Identifier "b"];
+      body = Ast.BlockStatement {
+        stms = [
+          Ast.ExpressionStatement {
+            exp = Ast.InfixExpression {
+              op = "*";
+              left = Ast.Identifier "a";
+              right = Ast.Identifier "b";
+            }
+          }
+        ]
+      }
+    };
+    Object.Strng "hoge";
+    Object.Arry [
+      Object.Integer 22;
+      Object.Strng "hoge";
+    ];
+    Object.Arry [
+      Object.Integer 22;
+      Object.Strng "hoge";
+      Object.Integer 33;
+    ];
+  ]
+  (To_test.evals [
+    "len([1, 2]);";
+    "len([fn(a) {a + 1;}, 22, \"hoge\"])";
+    "first([fn(a, b) {a * b;}, 22, \"hoge\"])";
+    "last([fn(a, b) {a * b;}, 22, \"hoge\"])";
+    "rest([fn(a, b) {a * b;}, 22, \"hoge\"])";
+    "push([22, \"hoge\"], 33)";
+  ])
+
 
 (* Run it *)
 let () =
@@ -269,5 +308,6 @@ let () =
           test_case "eval CallExpression" `Slow test_call_exp;
           test_case "eval ArrayLiteral" `Slow test_array_lit;
           test_case "eval IndexExpression" `Slow test_ind_exp;
+          test_case "eval Builtin" `Slow test_builtin;
         ];
     ]

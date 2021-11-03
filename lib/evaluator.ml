@@ -2,6 +2,7 @@ module Evaluator = struct
 include Object
 include Ast
 include Env
+include Builtin
 
 let isTruthy = function
 | Object.Boolean boolean -> boolean
@@ -44,7 +45,7 @@ let extendFunctionEnv prms args env = let nenv = Env.newEnclosedEnv env
 in let rec refe pms ags = match pms, ags with
   | [], [] -> ()
   | (Ast.Identifier idt)::it, obj::ot -> let _ = Env.set nenv idt obj in refe it ot
-  | _, _ -> raise (Failure "err env")
+  | _, _ -> raise (Failure "extend env failed")
 in refe prms args; nenv
 
 let rec evalExpression exp env = match exp with
@@ -61,6 +62,11 @@ let rec evalExpression exp env = match exp with
 | Ast.FunctionLiteral i -> (Object.Func {prms = i.prms; body = i.body;}, env)
 | Ast.CallExpression i -> (match evalExpression i.fn env with
   | Object.Err i, ev -> (Object.Err i, ev)
+  | Object.Builtin bin, ev -> (match evalExpressions i.args ev with
+    | [Object.Err i], e -> (Object.Err i, e)
+    | args, e -> match bin args with
+      | Some v -> (v, e)
+      | None -> (Object.Err "function called with wrong params", e))
   | Object.Func fn, ev -> (match evalExpressions i.args ev with
     | [Object.Err i], e -> (Object.Err i, e)
     | args, e ->  (match fn.body with
@@ -80,8 +86,9 @@ let rec evalExpression exp env = match exp with
 
 and evalIdentifier idt env = match Env.get env idt with
   | Some v -> (v, env)
-  | None ->
-    (Object.Err ("unbound identifier " ^ idt), env)
+  | None -> (match Builtin.get idt with
+    | Some btin -> (Object.Builtin btin, env)
+    | None -> (Object.Err ("unbound identifier " ^ idt), env))
 
 and evalIfExpression cond cons alt env = match evalExpression cond env with
   | Object.Err i, ev -> (Object.Err i, ev)
