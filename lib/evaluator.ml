@@ -50,9 +50,7 @@ in refe prms args; nenv
 let rec evalExpression exp env = match exp with
 | Ast.IntegerLiteral i -> (Object.Integer i, env)
 | Ast.StringLiteral i -> (Object.Strng i, env)
-| Ast.Identifier i -> (match Env.get env i with
-  | Some v -> (v, env)
-  | None -> (Object.Err ("unbound identifier " ^ i), env))
+| Ast.Identifier i -> evalIdentifier i env
 | Ast.BooleanLiteral i -> (Object.Boolean i, env)
 | Ast.PrefixExpression {op; right;} -> let (r, ev) = evalExpression right env
   in (evalPrefixExpression op r, ev)
@@ -79,6 +77,11 @@ let rec evalExpression exp env = match exp with
       | None -> (Object.Err "index out of range", e))
     | obj, e ->  (Object.Err (Printf.sprintf "index operator not supported: %s" (Object.objToString obj)), e))
   | obj, ev -> (Object.Err (Printf.sprintf "index operator not supported: %s" (Object.objToString obj)), ev))
+
+and evalIdentifier idt env = match Env.get env idt with
+  | Some v -> (v, env)
+  | None ->
+    (Object.Err ("unbound identifier " ^ idt), env)
 
 and evalIfExpression cond cons alt env = match evalExpression cond env with
   | Object.Err i, ev -> (Object.Err i, ev)

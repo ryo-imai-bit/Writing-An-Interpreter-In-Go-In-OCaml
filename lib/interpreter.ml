@@ -5,3 +5,4 @@ module Parser = Parser.Parser
 module Evaluator = Evaluator.Evaluator
 module Object = Object.Object
 module Env = Env.Env
+module Builtin = Builtin.Builtin
