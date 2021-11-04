@@ -30,7 +30,7 @@ module Builtin = struct
     | (Object.Arry i)::obj::[] -> Some (Object.Arry (i@[obj]))
     | _ -> None))
   | "put" -> Some (fun objs -> (match objs with
-    | (Object.Strng i)::[] -> Printf.printf "%s\n" i ; Some Object.Empty
+    | obj::[] -> Printf.printf "%s\n" (Object.objToString obj) ; Some Object.Empty
     | _ -> None))
   | _ -> None
 
