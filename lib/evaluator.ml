@@ -62,7 +62,9 @@ let rec evalExpression exp env = match exp with
 | Ast.IfExpression i -> evalIfExpression i.cond i.cons i.alt env
 | Ast.FunctionLiteral i -> (Object.Func {prms = i.prms; body = i.body;}, env)
 | Ast.CallExpression i -> (match i.fn with
-  | Ast.Identifier idt when idt = "quote" -> ()
+  | Ast.Identifier idt when idt = "quote" -> (match i.args with
+    | h::[] -> (Object.Quote h, env)
+    | _ -> (Object.Err "Quote have to be called with one argument", env))
   | _ -> (match evalExpression i.fn env with
     | Object.Err i, ev -> (Object.Err i, ev)
     | Object.Builtin bin, ev -> (match evalExpressions i.args ev with
@@ -158,4 +160,7 @@ let evalProgram perrors (program:Ast.program) env = if perrors = []
   | ob, _ -> ob
   else Object.Err (Parser.errorsToString perrors)
 
+end
+
+module Quote = struct
 end

@@ -26,7 +26,7 @@ dune exec bin/main.exe
 - refactoring
   - change some functions to use mutually recursive definition
   - better performance
-  - implementing in more OCaml way. Now, codes are implemented as is written in the book.
+  - implementing in more OCaml way. Now, codes are implemented as it is written in the book.
 - precise error message
 - implementing macro
 - hash table

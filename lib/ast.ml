@@ -58,6 +58,63 @@ module Ast = struct
       | h::t -> "[ " ^ stmToString h ^ " ]" ^ rstmts t
     in "BLOCK:" ^ rstmts i.stms
 
+  let rec modifyExpression (modifier:expression -> expression) node = let nd = match node with
+    | InfixExpression i -> InfixExpression {
+      i with
+        left = modifyExpression modifier i.left;
+        right = modifyExpression modifier i.right;
+      }
+    | PrefixExpression i -> PrefixExpression {
+        i with
+          right = modifyExpression modifier i.right;
+      }
+    | IfExpression i -> (match i.alt with
+      | Some alt -> IfExpression {
+          cond = modifyExpression modifier i.cond;
+          cons = modifyStatement modifier i.cons;
+          alt = Some (modifyStatement modifier alt);
+      }
+      | None -> IfExpression {
+          cond = modifyExpression modifier i.cond;
+          cons = modifyStatement modifier i.cons;
+          alt = None;
+      })
+    | FunctionLiteral i -> FunctionLiteral {
+        prms = List.map (modifyExpression modifier) i.prms;
+        body = modifyStatement modifier i.body;
+      }
+    | ArrayLiteral i -> ArrayLiteral {
+        elms = List.map (modifyExpression modifier) i.elms;
+      }
+    | IndexExpression i -> IndexExpression {
+        left = modifyExpression modifier i.left;
+        index = modifyExpression modifier i.index;
+      }
+    | CallExpression i -> (match i.fn with
+      | Identifier idt when idt = "unquote" -> CallExpression {
+          i with
+          args = List.map (modifyExpression modifier) i.args;
+        }
+      | _ -> CallExpression i)
+    | exp -> exp
+    in modifier nd
+
+  and modifyStatement modifier stm = match stm with
+  | LetStatment i -> LetStatment {
+      idt = modifyExpression modifier i.idt;
+      value = modifyExpression modifier i.value;
+    }
+  | ReturnStatement i -> ReturnStatement {
+      value = modifyExpression modifier i.value;
+    }
+  | ExpressionStatement i -> ExpressionStatement {
+      exp = modifyExpression modifier i.exp;
+    }
+  | BlockStatement i -> BlockStatement {
+      stms = List.map (modifyStatement modifier) i.stms;
+    }
+
+
   let stmsToString stmts = let rec rrc = function
   | [] -> ""
   | h::t -> (stmToString h) ^ " " ^ rrc t

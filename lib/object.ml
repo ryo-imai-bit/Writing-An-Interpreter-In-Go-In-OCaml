@@ -9,6 +9,7 @@ include Ast
   | Func of {prms: Ast.expression list; body: Ast.statement}
   | Builtin of (obj list -> obj option)
   | Arry of obj list
+  | Quote of Ast.expression
   | Empty
   | Null
   | Err of string
@@ -37,7 +38,8 @@ include Ast
   | ReturnValue i -> "ReturnValue (" ^ objToString i ^ ")"
   | Func i -> "Function (prms " ^ Ast.expsToString i.prms ^ ", body " ^ Ast.stmToString i.body ^ ")"
   | Builtin _ -> "Builtin"
-  | Arry i -> objsToString i
+  | Arry i -> "Array ( " ^ objsToString i ^ " )"
+  | Quote i -> "QUOTE( " ^ Ast.expToString i ^ " )"
   | Empty -> "Empty"
   | Null -> "Null"
   | Err i -> i
