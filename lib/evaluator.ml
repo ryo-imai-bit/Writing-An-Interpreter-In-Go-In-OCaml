@@ -3,6 +3,7 @@ include Object
 include Ast
 include Env
 include Builtin
+include Parser
 
 let isTruthy = function
 | Object.Boolean boolean -> boolean
@@ -29,7 +30,7 @@ let evalIntegerInfixExpression op left right = match op with
 
 let evalStringInfixExpression op left right = match op with
 | "+" -> Object.Strng (left ^ right)
-| _ -> Object.Err (Printf.sprintf "unknown operator: %s %s %s" op left right)
+| _ -> Object.Err (Printf.sprintf "unknown operator: STRING %s STRING" op)
 
 let evalInfixExpression op left right = match (left, right) with
 | Object.Integer l, Object.Integer r -> evalIntegerInfixExpression op l r
@@ -141,16 +142,18 @@ and evalLetStatement idt value env = match idt with
     | obj, ev -> (Env.set ev ident obj, ev))
   | node -> (Object.Err ("expected IDENTIFIER got " ^ (Ast.expToString node)), env)
 
-let evalProgram (program:Ast.program) env = let rec revs slist ev = match slist with
-  | [] -> (Object.Empty, ev)
-  | h::[] -> (match evalStatement h ev with
-    | Object.ReturnValue i, e -> (i, e)
-    | obj, e -> (obj, e))
-  | h::t -> match evalStatement h ev with
-    | Object.ReturnValue i, e -> (i, e)
-    | Object.Err i, e -> (Object.Err i, e)
-    | _, e -> revs t e
-in match revs program.statements env with
-| ob, _ -> ob
+let evalProgram perrors (program:Ast.program) env = if perrors = []
+  then let rec revs slist ev = match slist with
+    | [] -> (Object.Empty, ev)
+    | h::[] -> (match evalStatement h ev with
+      | Object.ReturnValue i, e -> (i, e)
+      | obj, e -> (obj, e))
+    | h::t -> match evalStatement h ev with
+      | Object.ReturnValue i, e -> (i, e)
+      | Object.Err i, e -> (Object.Err i, e)
+      | _, e -> revs t e
+  in match revs program.statements env with
+  | ob, _ -> ob
+  else Object.Err (Parser.errorsToString perrors)
 
 end

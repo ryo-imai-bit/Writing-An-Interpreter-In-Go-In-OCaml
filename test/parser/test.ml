@@ -6,7 +6,7 @@ include Lexer
 module To_test = struct
   let newparser lex = let le = Parser.newParser lex in le.peekToken
   let nextToken prs = Parser.nextToken prs
-  let ast lex = let prg = Parser.parseProgram (Parser.newParser lex) [] in prg.statements
+  let ast lex = let (_, prg) = Parser.parseProgram (Parser.newParser lex) [] in prg.statements
 end
 
 let ast_testable = Alcotest.testable Ast.pp Ast.eq

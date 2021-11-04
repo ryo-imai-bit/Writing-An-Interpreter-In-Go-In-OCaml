@@ -8,8 +8,8 @@ include Env
 module To_test = struct
   let evals strlst = let rec reval = function
     | [] -> []
-    | h::t -> let prg = Parser.parseProgram (Parser.newParser (Lexer.newLexer h)) []
-    in let obj = Evaluator.evalProgram prg (Env.newEnv)
+    | h::t -> let (ps, prg) = Parser.parseProgram (Parser.newParser (Lexer.newLexer h)) []
+    in let obj = Evaluator.evalProgram ps.errors prg (Env.newEnv)
     in obj::(reval t)
   in reval strlst
 end

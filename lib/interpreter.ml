@@ -8,21 +8,23 @@ module Env = Env.Env
 module Builtin = Builtin.Builtin
 
 let prompt = ">>"
-let monkey = {|"
-          __,__
-.--.  .-"     "-.  .--.
-/ .. \/  .-. .-.  \/ .. \
-| |  '|  /   Y   \  |'  | |
-| \   \  \ 0 | 0 /  /   / |
-\ '- ,\.-"""""""-./, -' /
-''-' /_   ^ ^   _\ '-''
-    |  \._   _./  |
-    \   \ '~' /   /
-      '._ '-=-' _.'
-        '-----"|}
+let monkey = {|            __,__
+   .--.  .-"     "-.  .--.
+  / .. \/  .-. .-.  \/ .. \
+ | |  '|  /   Y   \  |'  | |
+ | \   \  \ 0 | 0 /  /   / |
+  \ '- ,\.-"""""""-./, -' /
+   ''-' /_   ^ ^   _\ '-''
+       |  \._   _./  |
+       \   \ '~' /   /
+        '._ '-=-' _.'
+           '-----''|}
 
 
 let run () = print_string prompt;
   let input = read_line ()
-  in let prg = Parser.parseProgram (Parser.newParser (Lexer.newLexer input)) []
-  in print_endline (Object.objToString (Evaluator.evalProgram prg (Env.newEnv)))
+  in let (ps, prg) = Parser.parseProgram (Parser.newParser (Lexer.newLexer input)) []
+  in print_endline (match (Evaluator.evalProgram ps.errors prg (Env.newEnv)) with
+    | Object.Empty -> ""
+    | Object.Err i -> monkey ^ "\nWoops! We ran into some monkey business here!\n Error: " ^ i
+    | obj -> Object.objToString obj)
