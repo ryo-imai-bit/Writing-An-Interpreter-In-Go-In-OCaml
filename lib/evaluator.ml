@@ -61,19 +61,21 @@ let rec evalExpression exp env = match exp with
   in (evalInfixExpression op l r, e)
 | Ast.IfExpression i -> evalIfExpression i.cond i.cons i.alt env
 | Ast.FunctionLiteral i -> (Object.Func {prms = i.prms; body = i.body;}, env)
-| Ast.CallExpression i -> (match evalExpression i.fn env with
-  | Object.Err i, ev -> (Object.Err i, ev)
-  | Object.Builtin bin, ev -> (match evalExpressions i.args ev with
-    | [Object.Err i], e -> (Object.Err i, e)
-    | args, e -> match bin args with
-      | Some v -> (v, e)
-      | None -> (Object.Err "function called with wrong params", e))
-  | Object.Func fn, ev -> (match evalExpressions i.args ev with
-    | [Object.Err i], e -> (Object.Err i, e)
-    | args, e ->  (match fn.body with
-      | Ast.BlockStatement stm -> (applyFunction fn.prms stm.stms args e, e)
-      | bd -> (Object.Err ("expected BlockStatement got " ^ Ast.stmToString bd), e)))
-  | exp, ev -> (Object.Err (Object.objToString exp), ev))
+| Ast.CallExpression i -> (match i.fn with
+  | Ast.Identifier idt when idt = "quote" -> ()
+  | _ -> (match evalExpression i.fn env with
+    | Object.Err i, ev -> (Object.Err i, ev)
+    | Object.Builtin bin, ev -> (match evalExpressions i.args ev with
+      | [Object.Err i], e -> (Object.Err i, e)
+      | args, e -> match bin args with
+        | Some v -> (v, e)
+        | None -> (Object.Err "function called with wrong params", e))
+    | Object.Func fn, ev -> (match evalExpressions i.args ev with
+      | [Object.Err i], e -> (Object.Err i, e)
+      | args, e ->  (match fn.body with
+        | Ast.BlockStatement stm -> (applyFunction fn.prms stm.stms args e, e)
+        | bd -> (Object.Err ("expected BlockStatement got " ^ Ast.stmToString bd), e)))
+    | exp, ev -> (Object.Err (Object.objToString exp), ev)))
 | Ast.ArrayLiteral i -> (match evalExpressions i.elms env with
   | [Object.Err i], e -> (Object.Err i, e)
   | objs, e -> (Object.Arry objs, e))
