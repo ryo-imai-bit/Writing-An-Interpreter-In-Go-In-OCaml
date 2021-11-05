@@ -163,4 +163,24 @@ let evalProgram perrors (program:Ast.program) env = if perrors = []
 end
 
 module Quote = struct
+include Object
+include Ast
+  let quote node env = let (qt, _) = (evalUnquoteCalls node env) in Object.Quote qt
+
+  let rec convert = function
+      | Object.Integer i -> Ast.IntegerLiteral i
+      | Object.Strng i -> Ast.StringLiteral i
+      | Object.Boolean i -> Ast.BooleanLiteral i
+      |
+
+
+  let evalUnquoteCalls node env = let modifier = function
+    | Ast.CallExpression i -> (match i.fn with
+      | Ast.Identifier idt when idt = "unquote" -> (match i.args with
+        | h::[] -> let obj, _ = Evaluator.evalExpression h env
+        in convert obj
+        | _ -> Ast.CallExpression i)
+      | _ -> Ast.CallExpression i)
+    | n -> n
+  in Ast.modifyExpression modifier node
 end
