@@ -10,6 +10,13 @@ let isTruthy = function
 | Object.Null -> false
 | _ -> true
 
+let convert = function
+    | Object.Integer i -> Ast.IntegerLiteral i
+    | Object.Strng i -> Ast.StringLiteral i
+    | Object.Boolean i -> Ast.BooleanLiteral i
+    | Object.Func i -> Ast.FunctionLiteral {prms = i.prms; body = i.body;}
+    | _ -> Ast.IntegerLiteral 1
+
 let evalPrefixExpression op right = match op with
 | "!" -> Object.Boolean (Bool.not (isTruthy right))
 | "-" -> (match right with
@@ -63,7 +70,7 @@ let rec evalExpression exp env = match exp with
 | Ast.FunctionLiteral i -> (Object.Func {prms = i.prms; body = i.body;}, env)
 | Ast.CallExpression i -> (match i.fn with
   | Ast.Identifier idt when idt = "quote" -> (match i.args with
-    | h::[] -> (Object.Quote h, env)
+    | h::[] -> ((quote h env), env)
     | _ -> (Object.Err "Quote have to be called with one argument", env))
   | _ -> (match evalExpression i.fn env with
     | Object.Err i, ev -> (Object.Err i, ev)
@@ -146,6 +153,18 @@ and evalLetStatement idt value env = match idt with
     | obj, ev -> (Env.set ev ident obj, ev))
   | node -> (Object.Err ("expected IDENTIFIER got " ^ (Ast.expToString node)), env)
 
+and evalUnquoteCalls node env = let modifier = function
+  | Ast.CallExpression i -> (match i.fn with
+    | Ast.Identifier idt when idt = "unquote" -> (match i.args with
+      | h::[] -> let obj, _ = evalExpression h env
+      in convert obj
+      | _ -> Ast.CallExpression i)
+    | _ -> Ast.CallExpression i)
+  | n -> n
+in Ast.modifyExpression modifier node
+
+and quote node env = let qt = (evalUnquoteCalls node env) in Object.Quote qt
+
 let evalProgram perrors (program:Ast.program) env = if perrors = []
   then let rec revs slist ev = match slist with
     | [] -> (Object.Empty, ev)
@@ -160,27 +179,6 @@ let evalProgram perrors (program:Ast.program) env = if perrors = []
   | ob, _ -> ob
   else Object.Err (Parser.errorsToString perrors)
 
-end
-
-module Quote = struct
-include Object
-include Ast
-  let quote node env = let (qt, _) = (evalUnquoteCalls node env) in Object.Quote qt
-
-  let rec convert = function
-      | Object.Integer i -> Ast.IntegerLiteral i
-      | Object.Strng i -> Ast.StringLiteral i
-      | Object.Boolean i -> Ast.BooleanLiteral i
-      |
 
 
-  let evalUnquoteCalls node env = let modifier = function
-    | Ast.CallExpression i -> (match i.fn with
-      | Ast.Identifier idt when idt = "unquote" -> (match i.args with
-        | h::[] -> let obj, _ = Evaluator.evalExpression h env
-        in convert obj
-        | _ -> Ast.CallExpression i)
-      | _ -> Ast.CallExpression i)
-    | n -> n
-  in Ast.modifyExpression modifier node
 end
