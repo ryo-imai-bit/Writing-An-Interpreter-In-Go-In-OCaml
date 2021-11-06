@@ -80,6 +80,36 @@ let test_statements () = Alcotest.(check (list ast_testable))
     Ast.ExpressionStatement {
       exp = Ast.IndexExpression {left = Ast.Identifier "fuga"; index = Ast.Identifier "kame"};
     };
+    Ast.LetStatment {idt = Ast.Identifier "a"; value = Ast.MacroLiteral {
+      prms = [
+        Ast.Identifier "a";
+        Ast.Identifier "b";
+      ];
+      body = Ast.BlockStatement {stms = [
+        Ast.ExpressionStatement {
+          exp = Ast.CallExpression {
+            fn = Ast.Identifier "quote";
+            args = [
+              Ast.InfixExpression {
+                op = "-";
+                left = Ast.CallExpression {
+                  fn = Ast.Identifier "unquote";
+                  args = [
+                    Ast.Identifier "a"
+                  ];
+                };
+                right = Ast.CallExpression {
+                  fn = Ast.Identifier "unquote";
+                  args = [
+                    Ast.Identifier "b"
+                  ];
+                };
+              }
+            ]
+          }
+        }
+      ]}
+    }};
   ]
   (Lexer.newLexer "return hoge;
     let a = -1 + 1 * 5;
@@ -89,6 +119,7 @@ let test_statements () = Alcotest.(check (list ast_testable))
     [1, 3, fn (a, b) { 12 * 3}];
     hoge[hogehoge];
     fuga[kame];
+    let a = macro (a, b) { quote(unquote(a) - unquote(b)) };
   " |> To_test.ast)
 
 let test_let_statements () = Alcotest.(check (list ast_testable))

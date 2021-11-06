@@ -1,5 +1,6 @@
 module Env = struct
   include Object
+  include Ast
 
   type env = {
     store: (string, Object.obj) Hashtbl.t;
@@ -23,5 +24,19 @@ module Env = struct
       | None -> None)
 
   let set env key value = Hashtbl.add env.store key value; value
+
+let extendFunctionEnv prms args env = let nenv = newEnclosedEnv env
+in let rec refe pms ags = match pms, ags with
+  | [], [] -> ()
+  | (Ast.Identifier idt)::it, obj::ot -> let _ = set nenv idt obj in refe it ot
+  | _, _ -> raise (Failure "extend env failed")
+in refe prms args; nenv
+
+let extendMacroEnv prms args env = let nenv = newEnclosedEnv env
+in let rec refe pms ags = match pms, ags with
+  | [], [] -> ()
+  | (Ast.Identifier idt)::it, obj::ot -> let _ = set nenv idt (Object.Quote obj) in refe it ot
+  | _, _ -> raise (Failure "extend env failed")
+in refe prms args; nenv
 
 end

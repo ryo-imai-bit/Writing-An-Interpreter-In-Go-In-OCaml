@@ -15,7 +15,8 @@ let convert = function
     | Object.Strng i -> Ast.StringLiteral i
     | Object.Boolean i -> Ast.BooleanLiteral i
     | Object.Func i -> Ast.FunctionLiteral {prms = i.prms; body = i.body;}
-    | _ -> Ast.IntegerLiteral 1
+    | Object.Quote i -> i
+    | i -> raise (Failure (Object.objToString i))
 
 let evalPrefixExpression op right = match op with
 | "!" -> Object.Boolean (Bool.not (isTruthy right))
@@ -48,13 +49,6 @@ let evalInfixExpression op left right = match (left, right) with
   | "!=" -> Object.Boolean (Object.eq left right |> Bool.not)
   | _ -> Object.Err (Printf.sprintf "unknown operator: %s %s %s" (Object.objToString l) op (Object.objToString r)))
   else Object.Err (Printf.sprintf "type mismatch: %s %s %s" (Object.objToString l) op (Object.objToString r))
-
-let extendFunctionEnv prms args env = let nenv = Env.newEnclosedEnv env
-in let rec refe pms ags = match pms, ags with
-  | [], [] -> ()
-  | (Ast.Identifier idt)::it, obj::ot -> let _ = Env.set nenv idt obj in refe it ot
-  | _, _ -> raise (Failure "extend env failed")
-in refe prms args; nenv
 
 let rec evalExpression exp env = match exp with
 | Ast.IntegerLiteral i -> (Object.Integer i, env)
@@ -95,6 +89,7 @@ let rec evalExpression exp env = match exp with
       | None -> (Object.Err "index out of range", e))
     | obj, e ->  (Object.Err (Printf.sprintf "index operator not supported: %s" (Object.objToString obj)), e))
   | obj, ev -> (Object.Err (Printf.sprintf "index operator not supported: %s" (Object.objToString obj)), ev))
+| _ -> (Object.Err "hoge", env)
 
 and evalIdentifier idt env = match Env.get env idt with
   | Some v -> (v, env)
@@ -122,7 +117,7 @@ in try ree exps env with
 | Failure i -> ([Object.Err i], env)
 | _ -> ([Object.Err "unknown error"], env)
 
-and applyFunction prms body args env = let nenv = extendFunctionEnv prms args env in
+and applyFunction prms body args env = let nenv = Env.extendFunctionEnv prms args env in
 match evalBlockStatement body nenv with
 | Object.ReturnValue i, _ -> i
 | obj, _ -> obj
@@ -154,18 +149,17 @@ and evalLetStatement idt value env = match idt with
   | node -> (Object.Err ("expected IDENTIFIER got " ^ (Ast.expToString node)), env)
 
 and evalUnquoteCalls node env = let modifier = function
-  | Ast.CallExpression i -> (match i.fn with
-    | Ast.Identifier idt when idt = "unquote" -> (match i.args with
+  | Ast.CallExpression {fn = Ast.Identifier idt; args} when idt = "unquote"
+    -> (match args with
       | h::[] -> let obj, _ = evalExpression h env
       in convert obj
-      | _ -> Ast.CallExpression i)
-    | _ -> Ast.CallExpression i)
+      | _ -> Ast.CallExpression {fn = Ast.Identifier idt; args})
   | n -> n
 in Ast.modifyExpression modifier node
 
 and quote node env = let qt = (evalUnquoteCalls node env) in Object.Quote qt
 
-let evalProgram perrors (program:Ast.program) env = if perrors = []
+let evalProgram perrors program env = if perrors = []
   then let rec revs slist ev = match slist with
     | [] -> (Object.Empty, ev)
     | h::[] -> (match evalStatement h ev with
@@ -175,7 +169,7 @@ let evalProgram perrors (program:Ast.program) env = if perrors = []
       | Object.ReturnValue i, e -> (i, e)
       | Object.Err i, e -> (Object.Err i, e)
       | _, e -> revs t e
-  in match revs program.statements env with
+  in match revs program env with
   | ob, _ -> ob
   else Object.Err (Parser.errorsToString perrors)
 

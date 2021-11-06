@@ -37,6 +37,7 @@ module Token = struct
   | IF
   | ELSE
   | RETURN
+  | MACRO
     (* todo MACRO *)
 
   type token = {
@@ -80,6 +81,7 @@ module Token = struct
   | IF -> "IF"
   | ELSE -> "ELSE"
   | RETURN -> "RETURN"
+  | MACRO -> "MACRO"
 
   let keywords = function
     | "fn" -> FUNCTION
@@ -89,6 +91,7 @@ module Token = struct
     | "true" -> TRUE
     | "false" -> FALSE
     | "return" -> RETURN
+    | "macro" -> MACRO
     | _ -> IDENT
 
   let isSemicolon tok = tok.t_type = SEMICOLON
@@ -98,5 +101,4 @@ module Token = struct
   let eq a b = a.literal = b.literal && a.t_type = b.t_type
 
   let pp ppf tk = Fmt.pf ppf "Token =%s" (tokenToString tk)
-  (* (token_to_string tok) *)
 end

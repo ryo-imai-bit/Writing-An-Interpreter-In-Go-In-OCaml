@@ -6,6 +6,8 @@ module Evaluator = Evaluator.Evaluator
 module Object = Object.Object
 module Env = Env.Env
 module Builtin = Builtin.Builtin
+module Macro = Macro.Macro
+
 
 let prompt = ">>"
 let monkey = {|            __,__
@@ -24,7 +26,7 @@ let monkey = {|            __,__
 let run () = print_string prompt;
   let input = read_line ()
   in let (ps, prg) = Parser.parseProgram (Parser.newParser (Lexer.newLexer input)) []
-  in print_endline (match (Evaluator.evalProgram ps.errors prg (Env.newEnv)) with
+  in print_endline (match (Evaluator.evalProgram ps.errors prg.statements (Env.newEnv)) with
     | Object.Empty -> ""
     | Object.Err i -> monkey ^ "\nWoops! We ran into some monkey business here!\n Error: " ^ i
     | obj -> Object.objToString obj)

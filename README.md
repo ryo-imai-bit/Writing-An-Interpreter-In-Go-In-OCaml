@@ -28,6 +28,5 @@ dune exec bin/main.exe
   - better performance
   - implementing in more OCaml way. Now, codes are implemented as it is written in the book.
 - precise error message
-- implementing macro
 - hash table
 - for statement or while statement

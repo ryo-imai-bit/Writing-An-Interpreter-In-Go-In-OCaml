@@ -112,11 +112,12 @@ module Parser = struct
     then (nextToken prs, Some [])
     else rpfp (nextToken prs) (Some [])
 
-  let parseFunctionLiteral prs parseStatement = if prs.peekToken.t_type = Token.LPAREN
+  let parseFunctionStructure prs parseStatement = if prs.peekToken.t_type = Token.LPAREN
     then match parseFunctionParameters (nextToken prs) with
       | (pr, Some plist) -> if pr.peekToken.t_type = Token.LBRACE
           then match parseBlockstatement (nextToken pr |> nextToken) parseStatement with
-            | (p, Some slist) -> (p, Some (Ast.FunctionLiteral {prms = plist; body = slist;}))
+            (* | (p, Some slist) -> (p, Some (Ast.FunctionLiteral {prms = plist; body = slist;})) *)
+            | (p, Some slist) -> (p, Some (plist, slist))
             | (p, None) -> (p, None)
           else errorParse pr "expected LBRACE"
       | (pr, None) -> (pr, None)
@@ -157,7 +158,9 @@ module Parser = struct
   | {literal = _; t_type = Token.FALSE}
   | {literal = _; t_type = Token.TRUE} -> parseBooleanLiteral par
   | {literal = _; t_type = Token.IF} -> parseIfExpression par parseExpression parseStatement
-  | {literal = _; t_type = Token.FUNCTION} -> parseFunctionLiteral par parseStatement
+  | {literal = _; t_type = Token.FUNCTION} -> (match parseFunctionStructure par parseStatement with
+    | (p, Some (prms, body)) -> (p, Some (Ast.FunctionLiteral {prms = prms; body = body;}))
+    | (p, None) -> (p, None))
   | {literal = _; t_type = Token.LBRACKET} -> parseArrayLiteral par parseExpression parseStatement Token.RBRACKET
   (* | {literal = _; t_type = Token.LBRACE} -> parseArrayLiteral par parseExpression parseStatement Token.RBRACKET *)
   | {literal = _; t_type = Token.LPAREN} -> (match (parseExpression (nextToken par) lowest parseStatement) with
@@ -169,6 +172,9 @@ module Parser = struct
   | {literal; t_type = Token.MINUS} -> (match parseExpression (nextToken par) prefixPrecedence parseStatement with
     | (pr, Some ex) -> (pr, Some (Ast.PrefixExpression {op = literal; right = ex}))
     | (pr, None) -> (pr, None))
+  | {literal = _; t_type = Token.MACRO} -> (match parseFunctionStructure par parseStatement with
+    | (p, Some (prms, body)) -> (p, Some (Ast.MacroLiteral {prms = prms; body = body;}))
+    | (p, None) -> (p, None))
   | _ -> errorParse par "No matching prefix parse")
 
   let parseInfixExpression par lexp parseExpression parseStatement = match par.curToken with

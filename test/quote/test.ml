@@ -9,7 +9,7 @@ module To_test = struct
   let evals strlst = let rec reval = function
     | [] -> []
     | h::t -> let (ps, prg) = Parser.parseProgram (Parser.newParser (Lexer.newLexer h)) []
-    in let obj = Evaluator.evalProgram ps.errors prg (Env.newEnv)
+    in let obj = Evaluator.evalProgram ps.errors prg.statements (Env.newEnv)
     in obj::(reval t)
   in reval strlst
 end
@@ -37,6 +37,7 @@ let test_quote () = Alcotest.(check (list obj_testable))
       right = Ast.Identifier "barfoo";
     });
     Object.Quote (Ast.IntegerLiteral 8);
+    Object.Quote (Ast.IntegerLiteral 8);
   ]
   (To_test.evals [
     "quote(5)";
@@ -47,6 +48,7 @@ let test_quote () = Alcotest.(check (list obj_testable))
     quote(foobar * barfoo)";
     "let foobar = 8;
     quote(unquote(foobar))";
+    "quote(unquote(9 - 1));";
   ])
 
 (* Run it *)

@@ -10,6 +10,7 @@ include Ast
   | Builtin of (obj list -> obj option)
   | Arry of obj list
   | Quote of Ast.expression
+  | Macro of {prms: Ast.expression list; body: Ast.statement}
   | Empty
   | Null
   | Err of string
@@ -40,6 +41,7 @@ include Ast
   | Builtin _ -> "Builtin"
   | Arry i -> "Array ( " ^ objsToString i ^ " )"
   | Quote i -> "QUOTE( " ^ Ast.expToString i ^ " )"
+  | Macro i -> "Macro(prms " ^ Ast.expsToString i.prms ^ ", body " ^ Ast.stmToString i.body ^ ")"
   | Empty -> "Empty"
   | Null -> "Null"
   | Err i -> i
