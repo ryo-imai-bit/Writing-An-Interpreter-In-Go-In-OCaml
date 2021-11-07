@@ -7,7 +7,12 @@ module Env = struct
     outer: env option;
   }
 
-  let newEnv = {
+  let newEnv () = {
+    store = Hashtbl.create 100;
+    outer = None;
+  }
+
+  let getEnv = {
     store = Hashtbl.create 100;
     outer = None;
   }

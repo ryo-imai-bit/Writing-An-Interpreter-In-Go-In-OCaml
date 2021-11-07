@@ -93,11 +93,11 @@ module Ast = struct
         index = modifyExpression modifier i.index;
       }
     | CallExpression i -> (match i.fn with
-      | Identifier idt when idt = "unquote" -> CallExpression {
-          i with
+      | Identifier idt when idt = "unquote" -> CallExpression i
+      | _ -> CallExpression {
+          fn = modifyExpression modifier i.fn;
           args = List.map (modifyExpression modifier) i.args;
-        }
-      | _ -> CallExpression i)
+        })
     | exp -> exp
     in modifier nd
 

@@ -7,11 +7,11 @@ include Env
 include Macro
 
 module To_test = struct
-  let evals strlst =let rec reval = function
+  let evals strlst =let rec reval = (function
     | [] -> []
     | h::t -> let (_, prg) = Parser.parseProgram (Parser.newParser (Lexer.newLexer h)) []
-    in let p, e = (Macro.defineMacros prg.statements Env.newEnv)
-    in (Macro.expandMacros p e)::(reval t)
+    in let p, e = (Macro.defineMacros prg.statements (Env.newEnv ()))
+    in (Macro.expandMacros p e)::(reval t))
   in reval strlst
 
 end
@@ -65,9 +65,57 @@ let test_macro_int () = Alcotest.(check (list (list ast_testable)))
       }
       }
     ];
+    [
+      Ast.ExpressionStatement {exp = Ast.InfixExpression {
+        op = "-";
+        left = Ast.CallExpression {fn = Ast.FunctionLiteral {
+            prms = [
+              Ast.Identifier "a";
+            ];
+            body = Ast.BlockStatement {
+              stms = [
+                Ast.ExpressionStatement {
+                  exp = Ast.InfixExpression {
+                    op = "-";
+                    left = Ast.Identifier "a";
+                    right = Ast.IntegerLiteral 2;
+                  }
+                };
+              ]
+            }
+          };
+          args = [
+            Ast.IntegerLiteral 2;
+              ]
+        };
+        right = Ast.CallExpression {fn =
+          Ast.FunctionLiteral {
+            prms = [
+              Ast.Identifier "a";
+            ];
+            body = Ast.BlockStatement {
+              stms = [
+                Ast.ExpressionStatement {
+                  exp = Ast.InfixExpression {
+                    op = "-";
+                    left = Ast.Identifier "a";
+                    right = Ast.IntegerLiteral 1;
+                  }
+                };
+              ]
+            };
+          };
+          args = [
+            Ast.IntegerLiteral 1;
+          ]
+          };
+      }
+      }
+    ]
   ]
   (To_test.evals
-    ["
+    [
+      "
 let a = macro (a, b) { quote(unquote(a) - unquote(b)) };
 a(12 * 3, 9 - 1);
     ";
@@ -81,6 +129,10 @@ a(12 * 3, 9 - 1);
     };
 
     unless(10 > 5, put(\"not greater\"), put(\"greater\"));
+    ";
+    "
+    let a = macro (a, b) { quote(unquote(a)(2) - unquote(b)(1)) };
+    a(fn(a) { a -2 }, fn(a) { a - 1 });
     ";
   ]
   )

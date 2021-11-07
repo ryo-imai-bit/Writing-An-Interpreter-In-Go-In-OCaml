@@ -153,7 +153,10 @@ and evalUnquoteCalls node env = let modifier = function
     -> (match args with
       | h::[] -> let obj, _ = evalExpression h env
       in convert obj
-      | _ -> Ast.CallExpression {fn = Ast.Identifier idt; args})
+      (* | _ -> Ast.CallExpression {fn = Ast.Identifier idt; args}) *)
+      | _ -> Ast.CallExpression {fn = Ast.Identifier "hoge"; args})
+  (* | _ -> Ast.Identifier "hoge" *)
+  | Ast.CallExpression {fn = Ast.Identifier idt; args} -> Ast.CallExpression {fn = Ast.Identifier (idt ^ " hoge"); args}
   | n -> n
 in Ast.modifyExpression modifier node
 

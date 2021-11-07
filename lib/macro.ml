@@ -31,5 +31,4 @@ include Evaluator
     | h::t -> (Ast.modifyStatement modifier h)::(expandMacro t)
   in expandMacro prg
 
-
 end

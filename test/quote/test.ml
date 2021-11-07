@@ -9,7 +9,7 @@ module To_test = struct
   let evals strlst = let rec reval = function
     | [] -> []
     | h::t -> let (ps, prg) = Parser.parseProgram (Parser.newParser (Lexer.newLexer h)) []
-    in let obj = Evaluator.evalProgram ps.errors prg.statements (Env.newEnv)
+    in let obj = Evaluator.evalProgram ps.errors prg.statements (Env.newEnv ())
     in obj::(reval t)
   in reval strlst
 end
