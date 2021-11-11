@@ -219,11 +219,19 @@ let test_call_exp () = Alcotest.(check (list obj_testable))
     Object.Integer 3;
     Object.Strng "hogehoge";
     Object.Strng "hoge";
+    Object.Arry [
+      Object.Integer 2;
+      Object.Integer 4;
+      Object.Integer 6;
+    ];
   ]
   (To_test.evals [
     "fn(a,b) {a+b}(1,2)";
     "let a = \"hoge\"; fn (b, c) {let d = b + c; d}(\"hoge\", \"hoge\");";
     "let a = \"hoge\"; fn (b, c) {let a = b + c; a}(1, 3); a;";
+    "let map = fn (arr, func) { if (arr == []) { return []; } else { return [func(first(arr))] + map(rest(arr), func) } };
+      map([1, 2, 3], fn (int) { return int * 2 });
+    ";
   ])
 
 let test_array_lit () = Alcotest.(check (list obj_testable))
