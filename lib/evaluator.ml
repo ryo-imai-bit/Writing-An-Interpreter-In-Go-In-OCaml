@@ -33,16 +33,19 @@ let evalIntegerInfixExpression op left right = match op with
 | "<" -> Object.Boolean (left < right)
 | ">" -> Object.Boolean (left > right)
 | "==" -> Object.Boolean (left = right)
-| "!=" -> Object.Boolean (left != right)
+| "!=" -> Object.Boolean (left <> right)
 | _ -> Object.Err (Printf.sprintf "unknown operator: %s %s %s" (string_of_int left) op (string_of_int right))
 
 let evalStringInfixExpression op left right = match op with
 | "+" -> Object.Strng (left ^ right)
+| "==" -> Object.Boolean (left = right)
+| "!=" -> Object.Boolean (left <> right)
 | _ -> Object.Err (Printf.sprintf "unknown operator: STRING %s STRING" op)
 
 let evalInfixExpression op left right = match (left, right) with
 | Object.Integer l, Object.Integer r -> evalIntegerInfixExpression op l r
 | Object.Strng l, Object.Strng r -> evalStringInfixExpression op l r
+| Object.Arry l, Object.Arry r when op = "+" -> Object.Arry (l @ r)
 | l, r -> if Object.typeEq l r
   then (match op with
   | "==" -> Object.Boolean (Object.eq left right)

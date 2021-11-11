@@ -126,8 +126,36 @@ let test_infix_str () = Alcotest.(check (list obj_testable))
   [
     Object.Strng "brad pitt";
     Object.Strng "anata daredesuka";
+    Object.Boolean false;
+    Object.Boolean true;
+    Object.Boolean true;
+    Object.Boolean false;
   ]
-  (To_test.evals ["\"brad\" + \" \" + \"pitt\""; "\"anata \" + \"daredesuka\"";])
+  (To_test.evals [
+    "\"brad\" + \" \" + \"pitt\"";
+    "\"anata \" + \"daredesuka\"";
+    "\"anata\" == \"daredesuka\"";
+    "\"anata\" != \"daredesuka\"";
+    "\"anata\" == \"anata\"";
+    "\"anata\" != \"anata\"";
+  ])
+
+let test_infix_arr () = Alcotest.(check (list obj_testable))
+  "same objs"
+  [
+    Object.Arry [Object.Integer 1; Object.Integer 2; Object.Integer 3];
+    Object.Boolean true;
+    Object.Boolean false;
+    Object.Boolean false;
+    Object.Boolean true;
+  ]
+  (To_test.evals [
+    "[1] + [2, 3]";
+    "[2, 3] == [2, 3]";
+    "[2, 3] != [2, 3]";
+    "[1] == [2, 3]";
+    "[1] != [2, 3]";
+  ])
 
 let test_if_exp () = Alcotest.(check (list obj_testable))
   "same objs"
@@ -300,6 +328,7 @@ let () =
           test_case "eval Infix" `Slow test_infix;
           test_case "eval Infix Integer" `Slow test_infix_int;
           test_case "eval Infix String" `Slow test_infix_str;
+          test_case "eval Infix Array" `Slow test_infix_arr;
           test_case "eval If Expression" `Slow test_if_exp;
           test_case "eval Integer" `Slow test_int;
           test_case "eval String" `Slow test_str;
