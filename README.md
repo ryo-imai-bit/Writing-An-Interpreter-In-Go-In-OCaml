@@ -2,6 +2,10 @@
 
 implementation of Monkey language of [Writing An Interpreter In Go](https://interpreterbook.com/) in **OCaml**
 
+## Additional Features
+
+- [macro](https://interpreterbook.com/lost/)
+
 ## REPL
 
 You need 
@@ -21,7 +25,17 @@ dune exec bin/main.exe
 
 ```
 
-## TODO
+## Test
+
+run test
+
+```
+
+dune runtest
+
+```
+
+## Todo
 
 - refactoring
   - change some functions to use mutually recursive definition
