@@ -1,6 +1,6 @@
 # Writing-An-Interpreter-In-Go-In-OCaml
 
-implementation of Monkey language of [Writing An Interpreter In Go](https://interpreterbook.com/) in **OCaml**
+An implementation of Monkey language of [Writing An Interpreter In Go](https://interpreterbook.com/) in **OCaml**
 
 ## Additional Features
 
