@@ -1,4 +1,5 @@
 (executable
  (public_name repl)
  (name main)
- (libraries interpreter))
+ (libraries
+   interpreter))

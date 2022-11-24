@@ -7,6 +7,7 @@ module Object = Object.Object
 module Env = Env.Env
 module Builtin = Builtin.Builtin
 module Macro = Macro.Macro
+module Llvmjit = Llvmjit.Llvmjit
 
 
 let prompt = ">>"
@@ -32,3 +33,8 @@ let run () = print_string prompt;
     | Object.Empty -> ""
     | Object.Err i -> monkey ^ "\nWoops! We ran into some monkey business here!\n Error: " ^ i
     | obj -> Object.objToString obj)
+
+let run_jit () = print_string prompt;
+  let input = read_line ()
+  in let (_, prg) = Parser.parseProgram (Parser.newParser (Lexer.newLexer input)) []
+  in Llvmjit.run prg.statements
